@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Runtime and logs
+*.log
+logs/
+*.pid
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor and tool cache
+.idea/
+.vscode/
+.cache/
+.playwright-cli/
+
+# Project generated artifacts
+output/

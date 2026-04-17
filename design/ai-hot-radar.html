@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Hot Radar Tech UI Design</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2300aaff'/%3E%3Cpath d='M16 7c4 5-3 6 1 10 2 2 6-1 4-5 5 5 2 13-5 13-6 0-9-5-6-10 1-2 3-4 6-8z' fill='white'/%3E%3C/svg%3E">
+    <style>
+      :root {
+        color-scheme: dark;
+        --background: oklch(0.135 0.028 255);
+        --background-deep: oklch(0.095 0.025 255);
+        --surface: oklch(0.18 0.032 255 / 0.88);
+        --surface-raised: oklch(0.235 0.04 255 / 0.9);
+        --surface-soft: oklch(0.195 0.035 255 / 0.72);
+        --border: oklch(0.32 0.04 255 / 0.9);
+        --border-strong: oklch(0.58 0.16 230);
+        --foreground: oklch(0.94 0.018 250);
+        --muted: oklch(0.68 0.035 250);
+        --faint: oklch(0.51 0.04 250);
+        --primary: oklch(0.74 0.17 230);
+        --primary-strong: oklch(0.82 0.18 220);
+        --cyan: oklch(0.8 0.16 205);
+        --green: oklch(0.78 0.18 155);
+        --purple: oklch(0.67 0.16 300);
+        --warning: oklch(0.82 0.16 82);
+        --danger: oklch(0.68 0.2 25);
+        --radius-card: 8px;
+        --radius-control: 8px;
+        --font-sans: Inter, "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          linear-gradient(90deg, oklch(0.16 0.05 250 / 0.24) 1px, transparent 1px),
+          linear-gradient(180deg, oklch(0.16 0.05 250 / 0.2) 1px, transparent 1px),
+          radial-gradient(circle at 50% 24%, oklch(0.32 0.12 230 / 0.38), transparent 36%),
+          linear-gradient(180deg, oklch(0.14 0.035 255), var(--background-deep));
+        background-size: 56px 56px, 56px 56px, 100% 100%, 100% 100%;
+        color: var(--foreground);
+        font-family: var(--font-sans);
+        font-size: 15px;
+        letter-spacing: 0;
+      }
+
+      body {
+        min-width: 320px;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button,
+      .button-link {
+        min-height: 44px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-control);
+        color: var(--foreground);
+        background: var(--surface-raised);
+        cursor: pointer;
+        transition: transform 160ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      }
+
+      button:hover,
+      .button-link:hover {
+        transform: translateY(-1px);
+        border-color: var(--border-strong);
+      }
+
+      button:active,
+      .button-link:active {
+        transform: scale(0.98);
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      a:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 2px;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .page {
+        min-height: 100vh;
+        padding: 12px 0 40px;
+      }
+
+      .shell {
+        width: min(1176px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        min-height: 64px;
+        border-bottom: 1px solid oklch(0.3 0.035 255 / 0.54);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-icon {
+        position: relative;
+        display: grid;
+        width: 46px;
+        height: 46px;
+        place-items: center;
+        border-radius: 8px;
+        background: linear-gradient(135deg, oklch(0.68 0.19 235), oklch(0.78 0.16 205));
+        box-shadow: 0 16px 34px oklch(0.45 0.16 230 / 0.34);
+        color: white;
+        font-family: var(--font-mono);
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .brand-icon::after {
+        position: absolute;
+        right: -3px;
+        bottom: -3px;
+        width: 9px;
+        height: 9px;
+        border: 2px solid var(--background);
+        border-radius: 999px;
+        background: var(--green);
+        content: "";
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.1;
+      }
+
+      .brand p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .scan-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 0 22px;
+        border: 0;
+        background: linear-gradient(135deg, oklch(0.62 0.2 245), oklch(0.78 0.17 205));
+        box-shadow: 0 16px 34px oklch(0.48 0.18 230 / 0.32);
+        color: white;
+        font-weight: 800;
+      }
+
+      .bell-button {
+        position: relative;
+        width: 46px;
+        padding: 0;
+        color: var(--muted);
+      }
+
+      .bell-button::after {
+        position: absolute;
+        top: -6px;
+        right: -5px;
+        display: grid;
+        width: 22px;
+        height: 22px;
+        place-items: center;
+        border-radius: 999px;
+        background: var(--danger);
+        color: white;
+        content: "9+";
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .tabs {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 56px 0 28px;
+      }
+
+      .tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 126px;
+        min-height: 48px;
+        padding: 0 22px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: var(--muted);
+        background: transparent;
+        font-weight: 700;
+      }
+
+      .tab.active {
+        border-color: oklch(0.44 0.04 250);
+        background: oklch(0.25 0.035 250 / 0.82);
+        color: var(--foreground);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .stat-card {
+        min-height: 94px;
+        padding: 18px;
+        border: 1px solid oklch(0.31 0.045 250 / 0.86);
+        border-radius: var(--radius-card);
+        background: linear-gradient(145deg, oklch(0.18 0.045 250 / 0.85), oklch(0.13 0.035 255 / 0.9));
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+      }
+
+      .stat-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--faint);
+        font-size: 13px;
+      }
+
+      .stat-value {
+        margin-top: 14px;
+        color: var(--foreground);
+        font-family: var(--font-mono);
+        font-size: 30px;
+        font-weight: 800;
+      }
+
+      .stat-value.cyan {
+        color: var(--cyan);
+      }
+
+      .stat-value.danger {
+        color: oklch(0.72 0.21 22);
+      }
+
+      .stat-value.green {
+        color: var(--green);
+      }
+
+      .view-section {
+        display: none;
+      }
+
+      .view-section.active {
+        display: block;
+      }
+
+      .section-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 30px 0 16px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 21px;
+      }
+
+      .refresh-note {
+        color: var(--faint);
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      .search-panel {
+        margin-bottom: 28px;
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
+        background: oklch(0.16 0.03 255 / 0.72);
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+      }
+
+      .search-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 122px;
+        gap: 14px;
+      }
+
+      .search-input {
+        min-height: 58px;
+        width: 100%;
+        border: 1px solid oklch(0.34 0.04 250);
+        border-radius: var(--radius-control);
+        background: oklch(0.22 0.035 250 / 0.72);
+        color: var(--foreground);
+        padding: 0 20px;
+        font-size: 17px;
+      }
+
+      .search-input::placeholder {
+        color: var(--faint);
+      }
+
+      .search-button {
+        border: 0;
+        background: linear-gradient(135deg, oklch(0.58 0.19 245), oklch(0.76 0.17 205));
+        box-shadow: 0 16px 34px oklch(0.48 0.18 230 / 0.28);
+        color: white;
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 0;
+        padding: 0 0 22px;
+      }
+
+      .sort-group,
+      .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 38px;
+        padding: 0 14px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: var(--muted);
+        background: transparent;
+        font-size: 13px;
+      }
+
+      .chip.active {
+        border-color: oklch(0.46 0.13 230);
+        background: oklch(0.26 0.08 235 / 0.66);
+        color: var(--primary-strong);
+      }
+
+      .filter-button {
+        min-height: 38px;
+        padding: 0 14px;
+        color: var(--muted);
+        background: oklch(0.24 0.035 250 / 0.74);
+      }
+
+      .filter-button.active {
+        border-color: oklch(0.5 0.16 230);
+        background: oklch(0.25 0.09 235 / 0.78);
+        color: var(--primary-strong);
+      }
+
+      .filter-dot {
+        display: inline-grid;
+        width: 24px;
+        height: 24px;
+        margin-left: 6px;
+        place-items: center;
+        border-radius: 999px;
+        background: oklch(0.66 0.18 235);
+        color: white;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .filter-panel {
+        position: relative;
+        margin: 0 0 22px;
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
+        background: oklch(0.145 0.03 255 / 0.82);
+      }
+
+      .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .select-shell {
+        position: relative;
+      }
+
+      .select-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        min-width: 128px;
+        padding: 0 16px;
+        color: var(--muted);
+        background: oklch(0.24 0.035 250 / 0.82);
+      }
+
+      .select-trigger.selected {
+        border-color: oklch(0.5 0.16 230);
+        color: var(--primary-strong);
+        background: oklch(0.25 0.08 235 / 0.68);
+      }
+
+      .dropdown {
+        position: absolute;
+        z-index: 10;
+        top: calc(100% + 8px);
+        left: 0;
+        display: none;
+        min-width: 190px;
+        padding: 8px 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: oklch(0.13 0.028 255 / 0.98);
+        box-shadow: 0 18px 40px oklch(0.06 0.02 255 / 0.52);
+      }
+
+      .select-shell.open .dropdown {
+        display: block;
+      }
+
+      .dropdown button {
+        display: flex;
+        width: 100%;
+        min-height: 34px;
+        align-items: center;
+        border: 0;
+        border-radius: 0;
+        padding: 0 16px;
+        color: var(--muted);
+        background: transparent;
+        text-align: left;
+      }
+
+      .dropdown button:hover,
+      .dropdown button.active {
+        color: var(--primary-strong);
+        background: oklch(0.24 0.08 235 / 0.58);
+      }
+
+      .hot-list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .hot-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        min-height: 148px;
+        padding: 26px 24px;
+        border: 1px solid oklch(0.31 0.045 250 / 0.88);
+        border-radius: var(--radius-card);
+        background:
+          linear-gradient(90deg, oklch(0.19 0.055 230 / 0.72), transparent 46%),
+          oklch(0.14 0.03 255 / 0.88);
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+
+      .hot-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-strong);
+        background:
+          linear-gradient(90deg, oklch(0.23 0.075 230 / 0.78), transparent 50%),
+          oklch(0.155 0.035 255 / 0.92);
+      }
+
+      .hot-card.featured {
+        border-color: oklch(0.54 0.16 230);
+      }
+
+      .hot-card.hidden {
+        display: none;
+      }
+
+      .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        color: var(--faint);
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      .source {
+        color: var(--muted);
+      }
+
+      .hot-card h3 {
+        margin: 18px 0 10px;
+        color: var(--foreground);
+        font-size: 19px;
+        line-height: 1.45;
+      }
+
+      .summary {
+        max-width: 820px;
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        padding: 0 10px;
+        border: 1px solid oklch(0.34 0.045 250);
+        border-radius: 7px;
+        background: oklch(0.22 0.035 255 / 0.72);
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      .badge.green {
+        border-color: oklch(0.45 0.12 155);
+        color: var(--green);
+      }
+
+      .badge.purple {
+        border-color: oklch(0.45 0.12 300);
+        color: var(--purple);
+      }
+
+      .badge.yellow {
+        border-color: oklch(0.5 0.13 82);
+        color: var(--warning);
+      }
+
+      .view-button {
+        align-self: start;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 72px;
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        background: oklch(0.24 0.08 240 / 0.78);
+        color: var(--primary-strong);
+        font-weight: 800;
+      }
+
+      .monitor-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .monitor-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 82px;
+        padding: 20px 22px;
+        border: 1px solid oklch(0.32 0.045 250 / 0.88);
+        border-radius: var(--radius-card);
+        background:
+          linear-gradient(90deg, oklch(0.18 0.045 235 / 0.42), transparent 58%),
+          oklch(0.13 0.03 255 / 0.9);
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.035);
+      }
+
+      .monitor-card.disabled {
+        opacity: 0.68;
+      }
+
+      .switch {
+        position: relative;
+        flex: 0 0 auto;
+        width: 58px;
+        height: 30px;
+        min-height: 30px;
+        border: 1px solid oklch(0.64 0.15 205 / 0.72);
+        border-radius: 999px;
+        background:
+          radial-gradient(circle at 78% 50%, oklch(0.98 0.01 210) 0 7px, transparent 8px),
+          linear-gradient(135deg, oklch(0.58 0.18 235), oklch(0.78 0.15 205));
+        box-shadow:
+          0 0 18px oklch(0.65 0.17 215 / 0.28),
+          inset 0 1px 0 oklch(1 0 0 / 0.18);
+      }
+
+      .switch::after {
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: oklch(0.99 0.01 210);
+        box-shadow: 0 2px 8px oklch(0.06 0.02 250 / 0.5);
+        content: "";
+      }
+
+      .monitor-card.disabled .switch {
+        border-color: oklch(0.34 0.04 250);
+        background:
+          radial-gradient(circle at 26% 50%, oklch(0.62 0.035 250) 0 7px, transparent 8px),
+          oklch(0.21 0.032 250);
+        box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06);
+      }
+
+      .monitor-card.disabled .switch::after {
+        right: 33px;
+        background: oklch(0.64 0.035 250);
+      }
+
+      .empty-state {
+        display: none;
+        min-height: 160px;
+        padding: 38px 20px;
+        border: 1px dashed oklch(0.34 0.05 250);
+        border-radius: var(--radius-card);
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .empty-state.visible {
+        display: grid;
+        place-items: center;
+      }
+
+      .mobile-preview {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          width: min(100% - 24px, 720px);
+        }
+
+        .topbar {
+          align-items: flex-start;
+          padding-bottom: 14px;
+        }
+
+        .top-actions {
+          gap: 10px;
+        }
+
+        .tabs {
+          overflow-x: auto;
+          padding: 28px 0 20px;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .search-row {
+          grid-template-columns: 1fr;
+        }
+
+        .toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .hot-card {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .page {
+          padding-top: 8px;
+        }
+
+        .topbar {
+          gap: 12px;
+        }
+
+        .brand-icon {
+          width: 40px;
+          height: 40px;
+        }
+
+        .brand h1 {
+          font-size: 18px;
+        }
+
+        .brand p {
+          font-size: 12px;
+        }
+
+        .scan-button {
+          width: 44px;
+          padding: 0;
+          overflow: hidden;
+          color: transparent;
+        }
+
+        .scan-button::before {
+          color: white;
+          content: "↻";
+          font-size: 18px;
+        }
+
+        .bell-button {
+          width: 44px;
+        }
+
+        .tab {
+          min-width: 112px;
+          padding: 0 16px;
+        }
+
+        .stats-grid,
+        .monitor-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .section-title-row {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .hot-card {
+          padding: 20px;
+        }
+
+        .hot-card h3 {
+          display: -webkit-box;
+          overflow: hidden;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+        }
+
+        .summary {
+          display: -webkit-box;
+          overflow: hidden;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="shell">
+        <header class="topbar" aria-label="顶部导航">
+          <a class="brand" href="#" aria-label="AI Hot Radar 首页">
+            <div class="brand-icon" aria-hidden="true">⌁</div>
+            <div>
+              <h1>AI Hot Radar</h1>
+              <p>AI 热点雷达</p>
+            </div>
+          </a>
+          <div class="top-actions">
+            <button class="scan-button" type="button">↻ 立即扫描</button>
+            <button class="bell-button" type="button" aria-label="通知">⌁</button>
+          </div>
+        </header>
+
+        <nav class="tabs" aria-label="主功能切换">
+          <button class="tab active" type="button" data-view-target="radar">⌁ 热点雷达</button>
+          <button class="tab" type="button" data-view-target="monitor">◎ 监控词</button>
+          <button class="tab" type="button" data-view-target="search">⌕ 搜索</button>
+        </nav>
+
+        <section class="stats-grid" aria-label="热点统计">
+          <article class="stat-card">
+            <div class="stat-label">⌁ 总热点</div>
+            <div class="stat-value">49</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">◷ 今日新增</div>
+            <div class="stat-value cyan">49</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">⚠ 紧急热点</div>
+            <div class="stat-value danger">0</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">◎ 监控词</div>
+            <div class="stat-value green">6</div>
+          </article>
+        </section>
+
+        <section class="view-section active" data-view="radar" aria-label="实时热点流">
+          <div class="section-title-row">
+            <h2 class="section-title">🔥 实时热点流</h2>
+            <div class="refresh-note">每 30 分钟自动更新</div>
+          </div>
+
+          <div class="toolbar" aria-label="排序与筛选">
+            <div class="sort-group">
+              <button class="chip" type="button">↕ 最新发现</button>
+              <button class="chip" type="button">◷ 最新发布</button>
+              <button class="chip" type="button">♨ 重要程度</button>
+              <button class="chip" type="button">◎ 相关性</button>
+              <button class="chip active" type="button">⌁ 热度综合</button>
+            </div>
+            <div class="filter-group">
+              <button class="filter-button active" type="button" data-toggle-filters>▽ 筛选 <span class="filter-dot" data-filter-count>1</span></button>
+              <button class="filter-button" type="button">↻ 重置</button>
+            </div>
+          </div>
+
+          <div class="filter-panel" data-filter-panel>
+            <div class="filter-row">
+              <div class="select-shell open" data-select>
+                <button class="select-trigger selected" type="button" data-select-trigger>Bilibili ^</button>
+                <div class="dropdown">
+                  <button class="active" type="button" data-source-option="all">全部来源</button>
+                  <button type="button" data-source-option="twitter">Twitter</button>
+                  <button type="button" data-source-option="bing">Bing</button>
+                  <button type="button" data-source-option="google">Google</button>
+                  <button type="button" data-source-option="sogou">搜狗</button>
+                  <button type="button" data-source-option="bilibili">Bilibili</button>
+                  <button type="button" data-source-option="weibo">微博热搜</button>
+                  <button type="button" data-source-option="hackernews">HackerNews</button>
+                  <button type="button" data-source-option="duckduckgo">DuckDuckGo</button>
+                </div>
+              </div>
+              <div class="select-shell" data-select>
+                <button class="select-trigger" type="button" data-select-trigger>重要程度 ˅</button>
+                <div class="dropdown">
+                  <button type="button">全部</button>
+                  <button type="button">高优先级</button>
+                  <button type="button">中优先级</button>
+                </div>
+              </div>
+              <div class="select-shell" data-select>
+                <button class="select-trigger" type="button" data-select-trigger>关键词 ˅</button>
+                <div class="dropdown">
+                  <button type="button">全部关键词</button>
+                  <button type="button">Vibe Coding</button>
+                  <button type="button">AI 编程</button>
+                </div>
+              </div>
+              <div class="select-shell" data-select>
+                <button class="select-trigger" type="button" data-select-trigger>时间 ˅</button>
+                <div class="dropdown">
+                  <button type="button">全部时间</button>
+                  <button type="button">最近 1 小时</button>
+                  <button type="button">今天</button>
+                </div>
+              </div>
+              <div class="select-shell" data-select>
+                <button class="select-trigger" type="button" data-select-trigger>真实性 ˅</button>
+                <div class="dropdown">
+                  <button type="button">全部</button>
+                  <button type="button">可信</button>
+                  <button type="button">待验证</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-panel">
+            <div class="search-row">
+              <input class="search-input" type="text" value="Bilibili" aria-label="热点来源筛选" data-hot-search>
+              <button class="search-button" type="button" data-hot-search-button>搜索</button>
+            </div>
+          </div>
+
+          <div class="hot-list">
+            <article class="hot-card featured" data-hot-card data-search-text="bilibili vibe coding skills ai 工具 人工智能 大模型">
+              <div>
+                <div class="card-meta">
+                  <span>⌁</span>
+                  <span class="source">Bilibili</span>
+                  <span>Vibe Coding</span>
+                  <span>2 分钟前</span>
+                </div>
+                <h3>程序员鱼皮：超好用的 skills，让人工智能、大模型、AI 工具真正接入日常工作流</h3>
+                <p class="summary">AI 工具链和热点监控的关联度高，内容聚焦技能封装、自动化监控、信息源聚合。适合加入 AI 编程与 Agent 工作流关注队列。</p>
+                <div class="badges">
+                  <span class="badge">Vibe Coding</span>
+                  <span class="badge green">可信</span>
+                  <span class="badge purple">直接相关</span>
+                  <span class="badge yellow">热 56</span>
+                </div>
+              </div>
+              <a class="view-button" href="#">查看</a>
+            </article>
+
+            <article class="hot-card" data-hot-card data-search-text="bing ai 编程 编程导航 mcp 工作流">
+              <div>
+                <div class="card-meta">
+                  <span>⌁</span>
+                  <span class="source">Bing</span>
+                  <span>AI 编程</span>
+                  <span>9 分钟前</span>
+                </div>
+                <h3>编程导航：程序员一站式编程学习交流社区，AI 编程实战项目热度上升</h3>
+                <p class="summary">搜索热度来自 AI 编程项目、热点监控工具和 MCP 工作流。信息源需要结合 GitHub 与官方文档二次验证。</p>
+                <div class="badges">
+                  <span class="badge">Search</span>
+                  <span class="badge green">可追踪</span>
+                  <span class="badge purple">相关性 92%</span>
+                </div>
+              </div>
+              <a class="view-button" href="#">查看</a>
+            </article>
+
+            <article class="hot-card" data-hot-card data-search-text="github agent tools ai 热点监控 websocket">
+              <div>
+                <div class="card-meta">
+                  <span>⌁</span>
+                  <span class="source">GitHub</span>
+                  <span>Agent Tools</span>
+                  <span>18 分钟前</span>
+                </div>
+                <h3>开源 AI 热点监控工具发布新版本，新增多维度筛选排序和 WebSocket 实时推送</h3>
+                <p class="summary">仓库描述与当前工具目标高度一致。重点关注多源抓取、AI 分析、通知策略和前端科技风组件实现。</p>
+                <div class="badges">
+                  <span class="badge">Open Source</span>
+                  <span class="badge green">可信</span>
+                  <span class="badge yellow">热 45</span>
+                </div>
+              </div>
+              <a class="view-button" href="#">查看</a>
+            </article>
+            <div class="empty-state" data-hot-empty>没有匹配的热点，换个关键词再试。</div>
+          </div>
+        </section>
+
+        <section class="view-section" data-view="monitor" aria-label="监控词">
+          <div class="search-panel" aria-label="添加监控词">
+            <div class="search-row">
+              <input class="search-input" type="text" placeholder="输入要监控的关键词，如：GPT-5、AI 编程、Cursor..." aria-label="添加监控词" data-keyword-input>
+              <button class="search-button" type="button" data-add-keyword>＋ 添加</button>
+            </div>
+            <div class="monitor-grid" data-monitor-grid>
+              <article class="monitor-card">
+                <strong>DeepSeek</strong>
+                <button class="switch" type="button" aria-label="切换 DeepSeek 监控状态"></button>
+              </article>
+              <article class="monitor-card">
+                <strong>AI 教程</strong>
+                <button class="switch" type="button" aria-label="切换 AI 教程监控状态"></button>
+              </article>
+              <article class="monitor-card">
+                <strong>Claude <span class="card-meta">3 条热点</span></strong>
+                <button class="switch" type="button" aria-label="切换 Claude 监控状态"></button>
+              </article>
+              <article class="monitor-card">
+                <strong>Vibe Coding <span class="card-meta">25 条热点</span></strong>
+                <button class="switch" type="button" aria-label="切换 Vibe Coding 监控状态"></button>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="view-section" data-view="search" aria-label="搜索">
+          <div class="toolbar" aria-label="搜索排序与筛选">
+            <div class="sort-group">
+              <button class="chip" type="button">↕ 最新发现</button>
+              <button class="chip" type="button">◷ 最新发布</button>
+              <button class="chip" type="button">♨ 重要程度</button>
+              <button class="chip" type="button">◎ 相关性</button>
+              <button class="chip active" type="button">⌕ 搜索综合</button>
+            </div>
+            <div class="filter-group">
+              <button class="filter-button active" type="button" data-toggle-search-filters>▽ 筛选 <span class="filter-dot" data-search-filter-count>1</span></button>
+              <button class="filter-button" type="button" data-reset-search>↻ 重置</button>
+            </div>
+          </div>
+
+          <div class="filter-panel" data-search-filter-panel>
+            <div class="filter-row">
+              <div class="select-shell open" data-search-select>
+                <button class="select-trigger selected" type="button" data-search-source-trigger>全部来源 ^</button>
+                <div class="dropdown">
+                  <button class="active" type="button" data-search-source-option="all">全部来源</button>
+                  <button type="button" data-search-source-option="bilibili">Bilibili</button>
+                  <button type="button" data-search-source-option="bing">Bing</button>
+                  <button type="button" data-search-source-option="github">GitHub</button>
+                  <button type="button" data-search-source-option="rss">RSS</button>
+                  <button type="button" data-search-source-option="hackernews">HackerNews</button>
+                </div>
+              </div>
+              <div class="select-shell" data-search-select>
+                <button class="select-trigger" type="button" data-select-trigger>时间 ˅</button>
+                <div class="dropdown">
+                  <button type="button">全部时间</button>
+                  <button type="button">最近 1 小时</button>
+                  <button type="button">今天</button>
+                </div>
+              </div>
+              <div class="select-shell" data-search-select>
+                <button class="select-trigger" type="button" data-select-trigger>真实性 ˅</button>
+                <div class="dropdown">
+                  <button type="button">全部</button>
+                  <button type="button">可信</button>
+                  <button type="button">待验证</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-panel">
+            <div class="search-row">
+              <input class="search-input" type="text" placeholder="搜索来源、标题、摘要，如：GitHub、AI 编程、WebSocket..." aria-label="搜索热点" data-global-search>
+              <button class="search-button" type="button" data-global-search-button>搜索</button>
+            </div>
+          </div>
+          <div class="hot-list" data-search-results>
+            <div class="empty-state visible">输入关键词后展示搜索结果。</div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <script>
+      const tabs = Array.from(document.querySelectorAll('[data-view-target]'));
+      const sections = Array.from(document.querySelectorAll('[data-view]'));
+      const hotCards = Array.from(document.querySelectorAll('[data-hot-card]'));
+      const hotSearchInput = document.querySelector('[data-hot-search]');
+      const hotSearchButton = document.querySelector('[data-hot-search-button]');
+      const hotEmpty = document.querySelector('[data-hot-empty]');
+      const globalSearchInput = document.querySelector('[data-global-search]');
+      const globalSearchButton = document.querySelector('[data-global-search-button]');
+      const searchResults = document.querySelector('[data-search-results]');
+      const keywordInput = document.querySelector('[data-keyword-input]');
+      const addKeywordButton = document.querySelector('[data-add-keyword]');
+      const monitorGrid = document.querySelector('[data-monitor-grid]');
+      const scanButton = document.querySelector('.scan-button');
+      const statValues = Array.from(document.querySelectorAll('.stat-value'));
+      const toggleFiltersButton = document.querySelector('[data-toggle-filters]');
+      const filterPanel = document.querySelector('[data-filter-panel]');
+      const selectShells = Array.from(document.querySelectorAll('[data-select]'));
+      const sourceTrigger = document.querySelector('[data-select-trigger]');
+      const filterCount = document.querySelector('[data-filter-count]');
+      const toggleSearchFiltersButton = document.querySelector('[data-toggle-search-filters]');
+      const searchFilterPanel = document.querySelector('[data-search-filter-panel]');
+      const searchSelectShells = Array.from(document.querySelectorAll('[data-search-select]'));
+      const searchSourceTrigger = document.querySelector('[data-search-source-trigger]');
+      const searchFilterCount = document.querySelector('[data-search-filter-count]');
+      const resetSearchButton = document.querySelector('[data-reset-search]');
+      let activeSearchSource = 'all';
+
+      const setActiveView = (viewName) => {
+        tabs.forEach((tab) => {
+          tab.classList.toggle('active', tab.dataset.viewTarget === viewName);
+        });
+        sections.forEach((section) => {
+          section.classList.toggle('active', section.dataset.view === viewName);
+        });
+      };
+
+      const applyHotSearch = () => {
+        const query = hotSearchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        hotCards.forEach((card) => {
+          const text = card.dataset.searchText.toLowerCase();
+          const visible = query === '' || text.includes(query);
+          card.classList.toggle('hidden', !visible);
+          visibleCount += visible ? 1 : 0;
+        });
+
+        hotEmpty.classList.toggle('visible', visibleCount === 0);
+      };
+
+      const runGlobalSearch = () => {
+        const query = globalSearchInput.value.trim().toLowerCase();
+        searchResults.innerHTML = '';
+
+        if (!query && activeSearchSource === 'all') {
+          searchResults.innerHTML = '<div class="empty-state visible">输入关键词后展示搜索结果。</div>';
+          return;
+        }
+
+        const matchedCards = hotCards.filter((card) => {
+          const text = card.dataset.searchText.toLowerCase();
+          const matchesQuery = query === '' || text.includes(query);
+          const matchesSource = activeSearchSource === 'all' || text.includes(activeSearchSource);
+          return matchesQuery && matchesSource;
+        });
+
+        if (matchedCards.length === 0) {
+          searchResults.innerHTML = '<div class="empty-state visible">没有匹配的热点。</div>';
+          return;
+        }
+
+        matchedCards.forEach((card) => {
+          const clone = card.cloneNode(true);
+          clone.classList.remove('hidden');
+          searchResults.appendChild(clone);
+        });
+      };
+
+      const addKeyword = () => {
+        const keywordText = keywordInput.value.trim();
+        if (!keywordText) {
+          keywordInput.focus();
+          return;
+        }
+
+        const card = document.createElement('article');
+        card.className = 'monitor-card';
+        card.innerHTML = `
+          <strong>${keywordText} <span class="card-meta">0 条热点</span></strong>
+          <button class="switch" type="button" aria-label="切换 ${keywordText} 监控状态"></button>
+        `;
+        monitorGrid.prepend(card);
+        keywordInput.value = '';
+      };
+
+      const runMockScan = () => {
+        const originalText = scanButton.textContent;
+        scanButton.textContent = '扫描中';
+        scanButton.disabled = true;
+
+        window.setTimeout(() => {
+          const newCard = document.createElement('article');
+          newCard.className = 'hot-card featured';
+          newCard.dataset.hotCard = '';
+          newCard.dataset.searchText = 'openai model update api agent';
+          newCard.innerHTML = `
+            <div>
+              <div class="card-meta">
+                <span>⌁</span>
+                <span class="source">RSS</span>
+                <span>OpenAI</span>
+                <span>刚刚</span>
+              </div>
+              <h3>OpenAI 模型更新进入监控流，工具调用与 Agent 任务成为重点</h3>
+              <p class="summary">模拟扫描新增热点，用于验证立即扫描按钮、列表插入和统计数字更新。</p>
+              <div class="badges">
+                <span class="badge">Model Update</span>
+                <span class="badge green">可信</span>
+                <span class="badge yellow">热 63</span>
+              </div>
+            </div>
+            <a class="view-button" href="#">查看</a>
+          `;
+          document.querySelector('.hot-list').prepend(newCard);
+          hotCards.unshift(newCard);
+          statValues[0].textContent = String(Number(statValues[0].textContent) + 1);
+          statValues[1].textContent = String(Number(statValues[1].textContent) + 1);
+          scanButton.textContent = originalText;
+          scanButton.disabled = false;
+        }, 800);
+      };
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => setActiveView(tab.dataset.viewTarget));
+      });
+
+      toggleFiltersButton.addEventListener('click', () => {
+        const isHidden = filterPanel.hidden;
+        filterPanel.hidden = !isHidden;
+        toggleFiltersButton.classList.toggle('active', isHidden);
+      });
+
+      selectShells.forEach((shell) => {
+        const trigger = shell.querySelector('[data-select-trigger]');
+        trigger.addEventListener('click', () => {
+          selectShells.forEach((item) => {
+            if (item !== shell) item.classList.remove('open');
+          });
+          shell.classList.toggle('open');
+        });
+      });
+
+      document.querySelectorAll('[data-source-option]').forEach((option) => {
+        option.addEventListener('click', () => {
+          document.querySelectorAll('[data-source-option]').forEach((item) => item.classList.remove('active'));
+          option.classList.add('active');
+          sourceTrigger.textContent = `${option.textContent} ^`;
+          hotSearchInput.value = option.dataset.sourceOption === 'all' ? '' : option.textContent;
+          filterCount.textContent = option.dataset.sourceOption === 'all' ? '0' : '1';
+          applyHotSearch();
+        });
+      });
+
+      toggleSearchFiltersButton.addEventListener('click', () => {
+        const isHidden = searchFilterPanel.hidden;
+        searchFilterPanel.hidden = !isHidden;
+        toggleSearchFiltersButton.classList.toggle('active', isHidden);
+      });
+
+      searchSelectShells.forEach((shell) => {
+        const trigger = shell.querySelector('button');
+        trigger.addEventListener('click', () => {
+          searchSelectShells.forEach((item) => {
+            if (item !== shell) item.classList.remove('open');
+          });
+          shell.classList.toggle('open');
+        });
+      });
+
+      document.querySelectorAll('[data-search-source-option]').forEach((option) => {
+        option.addEventListener('click', () => {
+          document.querySelectorAll('[data-search-source-option]').forEach((item) => item.classList.remove('active'));
+          option.classList.add('active');
+          activeSearchSource = option.dataset.searchSourceOption;
+          searchSourceTrigger.textContent = `${option.textContent} ^`;
+          searchFilterCount.textContent = activeSearchSource === 'all' ? '0' : '1';
+          runGlobalSearch();
+        });
+      });
+
+      resetSearchButton.addEventListener('click', () => {
+        activeSearchSource = 'all';
+        globalSearchInput.value = '';
+        searchSourceTrigger.textContent = '全部来源 ^';
+        searchFilterCount.textContent = '0';
+        document.querySelectorAll('[data-search-source-option]').forEach((item) => {
+          item.classList.toggle('active', item.dataset.searchSourceOption === 'all');
+        });
+        runGlobalSearch();
+      });
+
+      hotSearchButton.addEventListener('click', applyHotSearch);
+      hotSearchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') applyHotSearch();
+      });
+
+      globalSearchButton.addEventListener('click', runGlobalSearch);
+      globalSearchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') runGlobalSearch();
+      });
+
+      addKeywordButton.addEventListener('click', addKeyword);
+      keywordInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') addKeyword();
+      });
+
+      monitorGrid.addEventListener('click', (event) => {
+        const switchButton = event.target.closest('.switch');
+        if (!switchButton) return;
+        switchButton.closest('.monitor-card').classList.toggle('disabled');
+      });
+
+      scanButton.addEventListener('click', runMockScan);
+    </script>
+  </body>
+</html>
