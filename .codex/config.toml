@@ -1,0 +1,93 @@
+[project]
+name = "ai_hot"
+language = "zh-CN"
+rules_entry = "AGENTS.md"
+
+[coordination]
+main_agent = "coordinator"
+queue_files = [
+  "docs/todo_plan.md",
+  "docs/doing_plan.md",
+  "docs/done_plan.md",
+]
+plan_archive = "docs/development-plan.md"
+default_flow = [
+  "planner",
+  "ui_designer",
+  "explorer",
+  "frontend",
+  "backend",
+  "integrator",
+  "spec_reviewer",
+  "code_reviewer",
+  "tester",
+  "release",
+]
+
+[coordination.rules]
+main_agent_writes_business_code = false
+subagents_write_queue_files = false
+allow_parallel_batch = true
+require_unique_owner = true
+require_non_overlapping_write_scope = true
+read_plan_archive_only_when_queue_mismatch = true
+
+[[rules]]
+id = "queue"
+path = ".codex/rules/queue.md"
+load_when = "领取任务、完成任务、队列对账、处理滞留任务"
+
+[[rules]]
+id = "coding"
+path = ".codex/rules/coding.md"
+load_when = "修改代码、排障、实现 Feature Unit"
+
+[[rules]]
+id = "arch"
+path = ".codex/rules/arch.md"
+load_when = "架构设计、接口设计、前后端集成、并行开发"
+
+[[rules]]
+id = "testing"
+path = ".codex/rules/testing.md"
+load_when = "验证、交付、移动任务到 done"
+
+[[agents]]
+id = "planner"
+path = ".codex/agents/planner.toml"
+
+[[agents]]
+id = "ui_designer"
+path = ".codex/agents/ui_designer.toml"
+
+[[agents]]
+id = "frontend"
+path = ".codex/agents/frontend.toml"
+
+[[agents]]
+id = "backend"
+path = ".codex/agents/backend.toml"
+
+[[agents]]
+id = "explorer"
+path = ".codex/agents/explorer.toml"
+
+[[agents]]
+id = "integrator"
+path = ".codex/agents/integrator.toml"
+
+[[agents]]
+id = "spec_reviewer"
+path = ".codex/agents/spec_reviewer.toml"
+
+[[agents]]
+id = "code_reviewer"
+path = ".codex/agents/code_reviewer.toml"
+
+[[agents]]
+id = "tester"
+path = ".codex/agents/tester.toml"
+
+[[agents]]
+id = "release"
+path = ".codex/agents/release.toml"
