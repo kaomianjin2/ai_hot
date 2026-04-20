@@ -9,13 +9,13 @@ allowed_skills = [
   "qa",
   "qa-only",
   "benchmark",
-  "canary",
 ]
 forbidden_skills = [
   "frontend-design",
   "test-driven-development",
   "ship",
   "land-and-deploy",
+  "canary",
 ]
 
 developer_instructions = """

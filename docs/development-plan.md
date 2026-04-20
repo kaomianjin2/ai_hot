@@ -99,11 +99,21 @@ Sources: Mock -> RSS -> GitHub
 | B09 | F0304, F0305 | integrator, backend | score and notification APIs return persisted data |
 | B10 | F0306 | frontend | notification panel E2E passes |
 
-每个批次固定流程：
+每个批次固定收口流程：
 
 ```text
-explorer -> frontend/backend/integrator -> spec_reviewer -> code_reviewer -> tester -> release gate
+explorer -> implementation -> spec_reviewer -> code_reviewer -> tester -> release gate
 ```
+
+`implementation` 按任务 Owner 选择 `frontend`、`backend` 或 `integrator`。`planner` 只用于立项、计划重写和范围重审；`ui_designer` 只用于 UI 规格缺失、设计变更和视觉验收前。
+
+并发领取规则：
+
+- 一次最多领取 3 个 Feature Unit。
+- 只有 `Depends On` 已完成的任务才能领取。
+- 同批任务的 `Write Scope` 不能重叠到同一文件、共享入口或未拆分目录。
+- `client/src/App.tsx`、`client/src/components/Topbar.tsx` 和后端扫描链路服务文件默认串行。
+- `integrator` 不与 `frontend` 或 `backend` 并行修改同一文件。
 
 完成门禁：
 
@@ -303,10 +313,10 @@ Mandatory verification by layer:
 Parallel lanes:
 
 ```text
-Lane A: B01 frontend -> B02 frontend -> B03 frontend -> B04-B06 frontend
-Lane B: B01 backend -> B02 backend -> B03-B05 backend
+Lane A: frontend 串行推进 B01 -> B02 -> B03 -> B04-B06
+Lane B: backend 串行推进 B01 -> B02 -> B03-B05
 Lane C: B07 integration waits for Lane A + Lane B
-Lane D: B08-B09 sources waits for scanner
+Lane D: B08-B09 sources waits for scanner; F0302/F0303 only run in parallel after F0301 and with independent files
 Lane E: B10 notification UI waits for B07 + B09
 ```
 

@@ -1,0 +1,51 @@
+[project]
+name = "ai_hot"
+language = "zh-CN"
+instructions_entry = "AGENTS.md"
+
+[workflow]
+main_agent = "coordinator"
+queue_files = [
+  "docs/todo_plan.md",
+  "docs/doing_plan.md",
+  "docs/done_plan.md",
+]
+plan_archive = "docs/development-plan.md"
+planning_flow = [
+  "planner",
+]
+ui_design_flow = [
+  "ui_designer",
+]
+batch_flow = [
+  "explorer",
+  "implementation",
+  "spec_reviewer",
+  "code_reviewer",
+  "tester",
+]
+implementation_agents = [
+  "frontend",
+  "backend",
+  "integrator",
+]
+release_gate = [
+  "release",
+]
+
+[workflow.constraints]
+main_agent_writes_business_code = false
+subagents_write_queue_files = false
+allow_parallel_batch = true
+require_unique_owner = true
+require_non_overlapping_write_scope = true
+read_plan_archive_only_when_queue_mismatch = true
+max_claim_batch = 3
+parallel_requires_dependencies_done = true
+parallel_requires_non_overlapping_files = true
+parallel_forbids_shared_app_entry = true
+
+[workflow.conditions]
+planner = "项目立项、计划重写、范围重审时触发"
+ui_designer = "UI 规格缺失、设计变更、视觉验收前触发"
+release = "tester 真实验证 PASS 后触发"

@@ -6,13 +6,13 @@ sandbox_mode = "read-only"
 allowed_skills = [
   "systematic-debugging",
   "investigate",
-  "qa-only",
-  "playwright",
   "browse",
 ]
 forbidden_skills = [
   "frontend-design",
   "test-driven-development",
+  "qa-only",
+  "playwright",
   "ship",
   "land-and-deploy",
 ]
@@ -26,4 +26,5 @@ developer_instructions = """
 3. 标出受影响的上下游、依赖文件和相关测试入口。
 4. 不要直接给大段实现方案，除非主 agent 明确要求。
 5. 禁止修改代码、队列文件和开发计划。
+6. 不输出 PASS/FAIL 验收结论，不替代 tester 做真实验证。
 """

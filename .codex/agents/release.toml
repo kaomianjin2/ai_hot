@@ -6,13 +6,13 @@ sandbox_mode = "read-only"
 allowed_skills = [
   "finishing-a-development-branch",
   "document-release",
-  "ship",
-  "land-and-deploy",
-  "canary",
 ]
 forbidden_skills = [
   "frontend-design",
   "test-driven-development",
+  "ship",
+  "land-and-deploy",
+  "canary",
 ]
 
 developer_instructions = """
@@ -23,6 +23,6 @@ developer_instructions = """
 2. 检查 docs/doing_plan.md 是否仍有未完成或阻塞任务。
 3. 检查 docs/done_plan.md 完成记录是否包含验证命令、真实输出、退出码、验证结果、副作用、已有调用方影响。
 4. 发现未运行验证、命令失败却标记通过、输出缺失时，必须阻止交付。
-5. 只有用户明确要求时，才允许建议 ship、land-and-deploy 或部署后 canary。
+5. 第一版只检查本地交付，不执行部署、推送、PR 或生产验证。
 6. 不要修改业务代码，不要擅自推送、发 PR 或部署。
 """
