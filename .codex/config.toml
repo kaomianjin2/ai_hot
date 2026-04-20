@@ -4,40 +4,40 @@ max_depth = 1
 
 [agents.planner]
 description = "任务拆解与规划"
-config_file = ".codex/agents/planner.toml"
+config_file = "agents/planner.toml"
 
 [agents.ui_designer]
 description = "UI 与交互设计"
-config_file = ".codex/agents/ui_designer.toml"
+config_file = "agents/ui_designer.toml"
 
 [agents.frontend]
 description = "前端实现"
-config_file = ".codex/agents/frontend.toml"
+config_file = "agents/frontend.toml"
 
 [agents.backend]
 description = "后端实现"
-config_file = ".codex/agents/backend.toml"
+config_file = "agents/backend.toml"
 
 [agents.explorer]
 description = "代码与上下文探索"
-config_file = ".codex/agents/explorer.toml"
+config_file = "agents/explorer.toml"
 
 [agents.integrator]
 description = "集成与联调"
-config_file = ".codex/agents/integrator.toml"
+config_file = "agents/integrator.toml"
 
 [agents.spec_reviewer]
 description = "需求与规格评审"
-config_file = ".codex/agents/spec_reviewer.toml"
+config_file = "agents/spec_reviewer.toml"
 
 [agents.code_reviewer]
 description = "代码评审"
-config_file = ".codex/agents/code_reviewer.toml"
+config_file = "agents/code_reviewer.toml"
 
 [agents.tester]
 description = "测试与验证"
-config_file = ".codex/agents/tester.toml"
+config_file = "agents/tester.toml"
 
 [agents.release]
 description = "发布与交付检查"
-config_file = ".codex/agents/release.toml"
+config_file = "agents/release.toml"
