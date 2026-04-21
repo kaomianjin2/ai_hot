@@ -1,5 +1,10 @@
 # Testing Rules
 
+## 职责
+
+- 本文件只定义成功标准、验证执行、验证证据、失败记录和交付验证字段。
+- 本文件不定义队列迁移、worktree 清理、subagent Flow、编码风格。
+
 ## 成功标准
 
 - 修改前必须定义成功标准。
@@ -8,9 +13,9 @@
 
 ## 完成门禁
 
-- 每个 Feature Unit 必须执行 `docs/development-plan.md` 中 `Verify` 声明的最小验证。
-- 只有真实执行验证、tester PASS 且用户复核 PASS 的 Feature Unit 才能算完成。
-- tester PASS 后必须立即进入用户复核；用户未明确复核通过前，禁止移动计划状态、写入 done、合并、删除 worktree、执行 worktree prune 或触发 release。
+- 每个 Feature Unit 必须执行当前任务中 `Verify` 声明的最小验证。
+- tester PASS 只表示验证通过。
+- 用户复核 PASS 不由 tester 判定。
 - 禁止伪造验证通过。
 - 未运行命令、命令失败、输出缺失、只凭推断都不能记为通过。
 
@@ -31,15 +36,12 @@
 
 ## 失败处理
 
-- 验证失败时，任务必须留在 `docs/doing_plan.md`。
-- 状态标记为 `Blocked` 或继续修复。
-- 禁止把失败任务移动到 `docs/done_plan.md`。
-- 前端页面设计或视觉改动的 Playwright 真实浏览器验证失败时，主 Agent 必须调度对应实现 subagent 修复，并在修复后重新交给 tester 验证。
+- 验证失败时，必须输出阻塞原因、真实命令、真实输出和退出码。
 
 ## 最小验证
 
 - Frontend：build、Playwright 关键交互、响应式截图。
-- 前端页面设计或视觉改动：必须使用 Playwright 进入真实浏览器验证关键页面、关键交互和至少 1 个响应式视口。
+- 前端页面改动：必须使用 Playwright 进入真实浏览器验证关键页面、关键交互和至少 1 个响应式视口。
 - Backend：build、health、API curl。
 - Storage：schema 创建、insert、update、read。
 - Integration：UI 读取 API 数据、API 失败态可见。

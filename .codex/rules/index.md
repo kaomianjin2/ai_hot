@@ -1,22 +1,25 @@
 # Project Rules Index
 
-本文件是项目规则入口。Codex 官方配置只维护在 `.codex/config.toml`；项目元数据维护在 `.codex/project.toml`；工作流细则维护在本目录。
+本文件是项目唯一规则调度入口。
 
-## Always Load
+## 文件职责
 
-- `.codex/rules/queue.md`：进入项目、领取任务、完成任务、队列对账、处理滞留任务。
+- `index.md`：规则入口、加载原则、触发条件、项目规则文件索引。
+- `queue.md`：计划队列读取、领取、状态迁移、计数对账、worktree 清理。
+- `coding.md`：代码修改前置条件、修改边界、编码风格、禁止事项。
+- `arch.md`：项目架构边界、技术约束、subagent Flow、并发原则、agent 写入边界。
+- `testing.md`：成功标准、验证执行、验证证据、失败记录、交付验证字段。
 
-## Load When Needed
+## 规则加载原则
 
-- `.codex/rules/coding.md`：修改代码、排障、实现 Feature Unit。
-- `.codex/rules/arch.md`：架构设计、接口设计、前后端集成、并行开发、跨模块变更、Feature Unit 执行、bug 修复、代码改动、业务操作 subagent 驱动。
-- `.codex/rules/testing.md`：验证、交付、移动任务到 done。
+- 进入项目只读取本文件。
+- 其他规则文件只按本文件的触发条件加载。
+- 除本文件外，规则文件禁止写“加载另一个规则文件”的要求。
+- 主 agent 按本文件完成规则调度；subagent 只遵守主 agent 为当前任务分配的规则和 Write Scope。
 
-## Project Metadata
+## 触发条件
 
-- 项目元数据：`.codex/project.toml`
-- Subagent 定义：`.codex/agents/*.toml`
-- 当前任务：`docs/doing_plan.md`
-- 待做任务：`docs/todo_plan.md`
-- 已完成任务：`docs/done_plan.md`
-- 开发计划存档：`docs/development-plan.md`
+- 队列读取、领取、完成、对账、滞留处理、Task Count、worktree 操作：加载 `queue.md`。
+- 代码修改、排障、Feature Unit 实现、提交前编码自检：加载 `coding.md`。
+- 架构边界、API 契约、跨模块、subagent Flow、并发原则、Write Scope 分配：加载 `arch.md`。
+- 成功标准、验证执行、验证失败、验证证据、交付验证结果：加载 `testing.md`。

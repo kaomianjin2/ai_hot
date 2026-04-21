@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 20
+Task Count: 19
 
 ## Rules
 
@@ -14,13 +14,6 @@ Task Count: 20
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0103 准备前端 Mock 数据
-
-- Phase: Frontend
-- Scope: `client/src/data/mockData.ts`
-- Verify: `cd client && rtk npm run build`
-- Depends On: F0102
 
 ### F0104 实现基础布局组件
 
