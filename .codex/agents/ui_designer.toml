@@ -14,6 +14,6 @@ developer_instructions = """
 4. 明确颜色、间距、层级、状态、交互反馈和可访问性要求。
 5. 允许输出或修改 design/**、docs/ui/**。
 6. 禁止修改 client/**、server/** 和计划队列文件。
-7. 不要生成业务代码，不要维护队列。
-8. 技能使用边界：可使用 ui-ux-pro-max、frontend-design、plan-design-review、figma:figma-generate-design、imagegen；不要使用 test-driven-development、requesting-code-review、ship、land-and-deploy。
+7. 不要生成业务代码。
+8. 技能使用边界：可使用 frontend-design、imagegen；不要引入 Figma，不执行实现、代码审查、交付或部署。
 """
