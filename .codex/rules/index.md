@@ -9,7 +9,7 @@
 ## Load When Needed
 
 - `.codex/rules/coding.md`：修改代码、排障、实现 Feature Unit。
-- `.codex/rules/arch.md`：架构设计、接口设计、前后端集成、并行开发、跨模块变更。
+- `.codex/rules/arch.md`：架构设计、接口设计、前后端集成、并行开发、跨模块变更、Feature Unit 执行、bug 修复、代码改动、业务操作 subagent 驱动。
 - `.codex/rules/testing.md`：验证、交付、移动任务到 done。
 
 ## Project Metadata

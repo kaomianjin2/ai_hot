@@ -42,9 +42,13 @@ Sources: Mock -> RSS -> GitHub
 
 - `planning_flow`：只在项目立项、计划重写、范围重审时运行 `planner`。
 - `ui_design_flow`：只在 UI 规格缺失、设计变更、视觉验收前运行 `ui_designer`。
+- 业务操作必须 subagent 驱动；主 Agent 只负责加载规则、拆分范围、调度 Flow、维护队列和请求用户复核。
 - `batch_flow`：日常 Feature Unit 执行固定为 `explorer -> implementation -> spec_reviewer -> code_reviewer -> tester`。
+- `batch_flow` 覆盖 Feature Unit 执行、bug 修复、任意代码改动和业务操作；紧急小修也必须至少经过对应 `implementation_agents -> code_reviewer -> tester`。
 - `implementation_agents`：按任务 Owner 选择 `frontend`、`backend` 或 `integrator` 中的一个或多个；同一文件只能由一个 agent 修改。
-- `release_gate`：tester 真实验证 PASS 后运行 `release` 做交付收口。
+- `user_review_gate`：tester 真实验证 PASS 后，主 Agent 立即请求用户复核；用户复核 PASS 前禁止 release、移动计划状态、合并或清理 worktree。
+- `release_gate`：tester 真实验证 PASS 且用户复核 PASS 后运行 `release` 做交付收口。
+- 前端页面设计或视觉改动必须通过 Playwright 进入真实浏览器验证；验证失败时，主 Agent 调度对应实现 subagent 修复后重新进入 tester。
 
 ## 并发 Lane
 
@@ -64,6 +68,7 @@ Sources: Mock -> RSS -> GitHub
 
 ## 工作流触发器
 
+- 执行 Feature Unit、修 bug、修改代码、处理业务操作：加载本文件，进入 `batch_flow`。
 - 影响 API 契约：加载本文件，核对 `docs/development-plan.md` 的 API Index。
 - 影响数据库写入、schema、迁移：加载本文件和 `.codex/rules/testing.md`。
 - 影响并发、批次、subagent 并行：加载本文件和 `.codex/rules/queue.md`。
