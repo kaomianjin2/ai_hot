@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 0
+Task Count: 1
 
 ## Rules
 
@@ -12,3 +12,36 @@ Task Count: 0
 - 本文件任务数 + `docs/todo_plan.md` 任务数 + `docs/doing_plan.md` 任务数在任务前后必须不变。
 
 ## Plans
+
+### F0101 创建前端工程
+
+- Phase: Frontend
+- Scope: `client/*`
+- Verify: `cd client && rtk npm run build`
+- Depends On: -
+- Owner: frontend
+- Write Scope: `client/*`
+- State: Done
+- Verification Command: `cd client && rtk npm run build`
+- Verification Output:
+
+```text
+/opt/homebrew/Library/Homebrew/cmd/shellenv.sh: line 18: /bin/ps: Operation not permitted
+> tsc -b tsconfig.json tsconfig.node.json && vite build
+vite v8.0.9 building client environment for production...
+transforming...✓ 16 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.27 kB
+dist/assets/index-CRUgErtd.css    1.00 kB │ gzip:  0.54 kB
+dist/assets/index-Dmpvkhtt.js   191.29 kB │ gzip: 60.51 kB
+✓ built in 90ms
+```
+
+- Exit Code: 0
+- Result: PASS
+- User Review: PASS
+- User Review Source: 用户回复“通过”
+- Side Effects: `rtk npm install` 在已移除的 `./worktrees/F0101` 中生成过 `client/node_modules/`；`rtk npm run build` 生成过 `client/dist/`；两者均被根 `.gitignore` 忽略，未进入提交。已按规则移除 `./worktrees/F0101` 并执行 `rtk git worktree prune`。
+- Existing Caller Impact: F0101 前不存在已跟踪 `client/` 前端工程；本次新增 React + Vite + TypeScript + CSS 工程骨架，不影响后端、API、数据库结构或部署流程。F0102 可继续新增 `client/src/types/domain.ts`，F0104 可继续改造 `client/src/App.tsx` 并新增 `client/src/components/*`。
+- Subagent Flow: frontend implementation DONE; spec reviewer PASS; code reviewer PASS; tester PASS; user review PASS.

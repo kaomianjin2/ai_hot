@@ -1,5 +1,5 @@
 # Doing Plan
-Task Count: 1
+Task Count: 0
 
 ## Rules
 
@@ -21,13 +21,3 @@ Task Count: 1
 - 禁止两个任务声明重叠的 `Write Scope`。
 
 ## Plans
-
-### F0101 创建前端工程
-
-- Phase: Frontend
-- Scope: `client/*`
-- Verify: `cd client && rtk npm run build`
-- Depends On: -
-- Owner: frontend
-- Write Scope: `client/*`
-- State: Ready For QA
