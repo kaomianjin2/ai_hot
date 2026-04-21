@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 21
+Task Count: 20
 
 ## Rules
 
@@ -14,13 +14,6 @@ Task Count: 21
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0102 定义前端领域类型
-
-- Phase: Frontend
-- Scope: `client/src/types/domain.ts`
-- Verify: `cd client && rtk npm run build`
-- Depends On: F0101
 
 ### F0103 准备前端 Mock 数据
 

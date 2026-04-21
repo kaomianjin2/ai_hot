@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 1
+Task Count: 2
 
 ## Rules
 
@@ -45,3 +45,35 @@ dist/assets/index-Dmpvkhtt.js   191.29 kB │ gzip: 60.51 kB
 - Side Effects: `rtk npm install` 在已移除的 `./worktrees/F0101` 中生成过 `client/node_modules/`；`rtk npm run build` 生成过 `client/dist/`；两者均被根 `.gitignore` 忽略，未进入提交。已按规则移除 `./worktrees/F0101` 并执行 `rtk git worktree prune`。
 - Existing Caller Impact: F0101 前不存在已跟踪 `client/` 前端工程；本次新增 React + Vite + TypeScript + CSS 工程骨架，不影响后端、API、数据库结构或部署流程。F0102 可继续新增 `client/src/types/domain.ts`，F0104 可继续改造 `client/src/App.tsx` 并新增 `client/src/components/*`。
 - Subagent Flow: frontend implementation DONE; spec reviewer PASS; code reviewer PASS; tester PASS; user review PASS.
+
+### F0102 定义前端领域类型
+
+- Phase: Frontend
+- Scope: `client/src/types/domain.ts`
+- Verify: `cd client && rtk npm run build`
+- Depends On: F0101
+- Owner: frontend
+- Write Scope: `client/src/types/domain.ts`
+- State: Done
+- Verification Command: `cd client && rtk npm run build`
+- Verification Output:
+
+```text
+> tsc -b tsconfig.json tsconfig.node.json && vite build
+vite v8.0.9 building client environment for production...
+transforming...✓ 16 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.27 kB
+dist/assets/index-CRUgErtd.css    1.00 kB │ gzip:  0.54 kB
+dist/assets/index-Dmpvkhtt.js   191.29 kB │ gzip: 60.51 kB
+✓ built in 70ms
+```
+
+- Exit Code: 0
+- Result: PASS
+- User Review: PASS
+- User Review Source: 用户回复“通过”
+- Side Effects: `rtk npm install` 在 `./worktrees/F0102/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；这些产物均被 `.gitignore` 忽略，未进入提交。任务合并后将按规则移除 `./worktrees/F0102` 并执行 `rtk git worktree prune`。
+- Existing Caller Impact: 新增 `client/src/types/domain.ts`，仅包含 TypeScript 类型导出，无运行时代码；当前没有现有文件导入该文件，不改变页面行为、接口、数据库结构或部署流程。F0103 可基于 `HotItem`、`MonitorKeyword`、`NotificationEvent`、`ScanSummary`、`HotItemFilters` 编写 mock 数据。
+- Subagent Flow: frontend implementation PASS; tester PASS; user review PASS.
