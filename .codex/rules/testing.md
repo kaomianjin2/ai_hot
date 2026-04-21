@@ -27,7 +27,7 @@
 - Owner
 - Write Scope
 - 验证命令
-- 真实输出
+- 真实输出(压缩到最多 2 行)
 - 退出码
 - PASS / FAIL / BLOCKED 结论
 - 用户复核状态和用户复核来源
