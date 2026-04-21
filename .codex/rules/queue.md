@@ -19,6 +19,7 @@
 
 - 任务不能凭空捏造、改名或跳号，只能从现有队列移动。
 - 领取批次时，从 `docs/todo_plan.md` 移除任务并追加到 `docs/doing_plan.md`。
+- 领取后进入业务开发前，必须在当前项目目录下创建独立 git worktree，路径使用 `./worktrees/<task-id>`。
 - 批量领取任务时，一次最多领取 3 个。
 - 批量领取只允许领取 `Depends On` 已经进入 `docs/done_plan.md` 的任务。
 - 同批任务的 `Write Scope` 必须精确到最终文件或目录，不能重叠到同一文件、同一共享入口或同一未拆分目录。
@@ -34,6 +35,8 @@
 - `Ready For QA` 只表示等待 tester 验证，不表示完成。
 - 每个 Feature Unit 必须由 tester 真实执行 `Verify` 声明的最小验证。
 - 验证通过后才能从 `docs/doing_plan.md` 移动到 `docs/done_plan.md`。
+- 开发完成、验证通过并合并后，必须移除当前任务 worktree，并执行 `rtk git worktree prune`。
+- 移除 worktree 后必须执行 `rtk git worktree list` 和 `rtk git status --short` 验证清理结果。
 - 验证失败的任务保留在 `docs/doing_plan.md`，状态标记为 `Blocked` 或继续修复。
 - `todo + doing + done` 任务总数必须保持不变。
 - 三份队列顶部 `Task Count` 必须唯一、准确。
