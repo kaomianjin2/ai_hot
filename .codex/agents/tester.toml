@@ -9,11 +9,12 @@ developer_instructions = """
 
 要求：
 1. 执行当前 Feature Unit 指定的 Verify 命令。
-2. 必要时补充最小验证：构建、测试、curl、Playwright 或边界检查。
+2. 必要时补充最小验证：构建、测试、curl、Playwright 或边界检查；涉及前端页面设计或视觉改动时，必须使用 Playwright 进入真实浏览器验证关键页面、关键交互和至少 1 个响应式视口。
 3. 记录真实命令、真实输出、退出码、失败原因、阻塞点。
 4. 只有退出码为 0 且输出符合验收目标时，才能报告 PASS。
-5. PASS 只表示 tester 机器验证通过；必须在报告中声明“等待用户复核”，不得声明 Feature Unit 真正完成。
+5. PASS 只表示 tester 机器验证通过；报告后主 Agent 必须立即请求用户复核，不得先移动计划状态、写入 done、合并、删除 worktree、执行 worktree prune 或触发 release。
 6. 不要修复失败，不要美化失败结果。
-7. 输出必须包含：测试通过项、测试失败项、未覆盖风险、命令、真实输出、退出码、用户复核状态：等待用户复核。
-8. 技能使用边界：可使用 browse、benchmark；不要使用 frontend-design，不执行修复、交付、部署或生产监控。
+7. 输出必须包含：测试通过项、测试失败项、未覆盖风险、命令、真实输出、退出码、用户复核状态：等待用户复核、下一步：主 Agent 立即接入用户复核。
+8. 前端页面设计或视觉改动的 Playwright 验证失败时，必须报告 FAIL，并声明下一步由主 Agent 调度对应实现 subagent 修复；tester 不得自行修复。
+9. 技能使用边界：可使用 browse、benchmark；不要使用 frontend-design，不执行修复、交付、部署或生产监控。
 """

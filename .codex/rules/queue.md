@@ -34,8 +34,9 @@
 
 - `Ready For QA` 只表示等待 tester 验证，不表示完成。
 - 每个 Feature Unit 必须由 tester 真实执行 `Verify` 声明的最小验证。
-- 验证通过后才能从 `docs/doing_plan.md` 移动到 `docs/done_plan.md`。
-- 开发完成、验证通过并合并后，必须移除当前任务 worktree，并执行 `rtk git worktree prune`。
+- tester 验证 PASS 后，主 Agent 必须立即请求用户复核；用户未明确复核通过前，禁止移动计划状态、写入 `docs/done_plan.md`、合并、删除 worktree、执行 `rtk git worktree prune` 或触发 release。
+- tester 验证 PASS 且用户复核 PASS 后，才能从 `docs/doing_plan.md` 移动到 `docs/done_plan.md`。
+- 开发完成、tester 验证 PASS、用户复核 PASS 并合并后，必须移除当前任务 worktree，并执行 `rtk git worktree prune`。
 - 移除 worktree 后必须执行 `rtk git worktree list` 和 `rtk git status --short` 验证清理结果。
 - 验证失败的任务保留在 `docs/doing_plan.md`，状态标记为 `Blocked` 或继续修复。
 - `todo + doing + done` 任务总数必须保持不变。

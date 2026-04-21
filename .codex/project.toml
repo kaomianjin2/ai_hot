@@ -32,6 +32,7 @@ implementation_agents = [
 release_gate = [
   "release",
 ]
+user_review_gate = "tester_pass_immediate"
 
 [workflow.constraints]
 main_agent_writes_business_code = false
@@ -48,4 +49,6 @@ parallel_forbids_shared_app_entry = true
 [workflow.conditions]
 planner = "项目立项、计划重写、范围重审时触发"
 ui_designer = "UI 规格缺失、设计变更、视觉验收前触发"
-release = "tester 真实验证 PASS 后触发"
+user_review = "tester 真实验证 PASS 后立即触发；用户复核 PASS 前禁止 release、移动计划状态、合并或清理 worktree"
+release = "tester 真实验证 PASS 且用户复核 PASS 后触发"
+frontend_playwright_repair = "前端页面设计或视觉改动必须使用 Playwright 真实浏览器验证；失败时主 Agent 调度对应实现 subagent 修复"
