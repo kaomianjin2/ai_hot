@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 19
+Task Count: 18
 
 ## Rules
 
@@ -14,13 +14,6 @@ Task Count: 19
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0104 实现基础布局组件
-
-- Phase: Frontend
-- Scope: `client/src/components/*`, `client/src/App.tsx`
-- Verify: Playwright 首屏检查
-- Depends On: F0103
 
 ### F0105 实现热点雷达页面
 

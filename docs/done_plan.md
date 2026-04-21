@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 3
+Task Count: 4
 
 ## Rules
 
@@ -110,3 +110,42 @@ dist/assets/index-Dmpvkhtt.js   191.29 kB │ gzip: 60.51 kB
 - Side Effects: `rtk npm install` 在 `./worktrees/F0103/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；这些产物均被 `.gitignore` 忽略，未进入提交。任务合并后将按规则移除 `./worktrees/F0103` 并执行 `rtk git worktree prune`。
 - Existing Caller Impact: 新增 `client/src/data/mockData.ts`，仅导出前端 Mock 数据和默认筛选值；当前没有现有文件导入该文件，不改变页面行为、API、数据库结构或部署流程。F0104-F0108 可继续基于 `mockHotItems`、`mockMonitorKeywords`、`mockNotificationEvents`、`mockScanSummaries` 和 `defaultHotItemFilters` 接入页面与交互。
 - Subagent Flow: explorer PASS; frontend implementation PASS; spec reviewer PASS; code reviewer PASS; tester PASS; user review PASS.
+
+### F0104 实现基础布局组件
+
+- Phase: Frontend
+- Scope: `client/src/components/*`, `client/src/App.tsx`
+- Verify: Playwright 首屏检查
+- Depends On: F0103
+- Owner: frontend
+- Write Scope: `client/src/components/*`, `client/src/App.tsx`
+- State: Done
+- Verification Command: `cd worktrees/F0104/client && rtk npm install && rtk npm run build`
+- Verification Output:
+
+```text
+added 27 packages, and audited 28 packages in 776ms
+8 packages are looking for funding
+found 0 vulnerabilities
+
+> ai-hot-client@0.1.0 build
+> tsc -b tsconfig.json tsconfig.node.json && vite build
+vite v8.0.9 building client environment for production...
+transforming...✓ 22 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.27 kB
+dist/assets/index-BdLLK1zT.css    4.13 kB │ gzip:  1.30 kB
+dist/assets/index-CyKYq4wj.js   197.02 kB │ gzip: 62.50 kB
+✓ built in 265ms
+```
+
+- Browser Verification: Playwright opened `http://127.0.0.1:4173/`; verified `AI Hot Radar`, `热点`, `监控词`, `通知`, `热点雷达`, and one hot item title visible. Desktop `1440x900` and mobile `390x844` both reported `hasHorizontalOverflow: false`; `inputCount: 0`; `buttonTexts: []`. Console had one `favicon.ico` 404 resource error and no React/runtime error.
+- Screenshot Evidence: `/tmp/F0104-desktop.png`, `/tmp/F0104-mobile.png`
+- Exit Code: 0
+- Result: PASS
+- User Review: PASS
+- User Review Source: 用户回复“通过”
+- Side Effects: `rtk npm install` 在 `./worktrees/F0104/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；这些产物均被 `.gitignore` 忽略，未进入提交。任务合并后将按规则移除 `./worktrees/F0104` 并执行 `rtk git worktree prune`。
+- Existing Caller Impact: `client/src/main.tsx` 仍按原方式渲染 `App`。首页从占位内容变为可复用基础布局，新增 `Topbar`、静态 `Tabs`、`Layout`、`ListContainer`，并使用现有 Mock 数据展示只读摘要；不改变 API、类型、Mock 数据、数据库结构或部署流程。F0105/F0106 可复用这些组件继续接入热点雷达页和监控词页。
+- Subagent Flow: explorer PASS; frontend implementation PASS; spec reviewer PASS after browser evidence; code reviewer PASS; tester PASS; user review PASS.
