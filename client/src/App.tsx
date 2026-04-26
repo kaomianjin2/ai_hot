@@ -5,25 +5,19 @@ import {
   mockNotificationEvents,
   mockScanSummaries,
 } from "./data/mockData";
-import type { HotItem } from "./types/domain";
+import type { HotItem, MonitorKeyword } from "./types/domain";
 import { HotRadarControls, type HotRadarSort } from "./components/HotRadarControls";
 import { Layout } from "./components/Layout";
 import { ListContainer } from "./components/ListContainer";
+import { MonitorKeywordsPanel } from "./components/MonitorKeywordsPanel";
 import { Tabs } from "./components/Tabs";
 import { Topbar } from "./components/Topbar";
 import "./components/components.css";
 
-const activeKeywords = mockMonitorKeywords.filter((keyword) => keyword.active);
 const unreadNotificationCount = mockNotificationEvents.filter(
   (notificationEvent) => !notificationEvent.read
 ).length;
 const latestScanSummary = mockScanSummaries[0];
-
-const tabItems = [
-  { id: "hot", label: "热点", count: mockHotItems.length },
-  { id: "keywords", label: "监控词", count: activeKeywords.length },
-  { id: "notifications", label: "通知", count: unreadNotificationCount },
-];
 
 const sourceOptions = Array.from(
   new Set(mockHotItems.map((hotItem) => hotItem.source))
@@ -80,12 +74,37 @@ function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
   return sortedItems;
 }
 
+function createMonitorKeywordId(keywordText: string, keywordCount: number) {
+  const normalizedKeyword = keywordText.trim().toLowerCase().replace(/\s+/g, "-");
+  const timestamp = Date.now().toString(36);
+
+  return `keyword-${normalizedKeyword}-${keywordCount + 1}-${timestamp}`;
+}
+
+function createMonitorKeyword(keywordText: string, keywordCount: number): MonitorKeyword {
+  return {
+    id: createMonitorKeywordId(keywordText, keywordCount),
+    text: keywordText,
+    active: true,
+    hitCount: 0,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export function App() {
+  const [activeTabId, setActiveTabId] = useState("hot");
+  const [monitorKeywords, setMonitorKeywords] = useState(mockMonitorKeywords);
   const [searchText, setSearchText] = useState("");
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minimumHeatScore, setMinimumHeatScore] = useState<number>(0);
   const [sortBy, setSortBy] = useState<HotRadarSort>("heat-desc");
+  const activeKeywordCount = monitorKeywords.filter((keyword) => keyword.active).length;
+  const tabItems = [
+    { id: "hot", label: "热点", count: mockHotItems.length },
+    { id: "keywords", label: "监控词", count: activeKeywordCount },
+    { id: "notifications", label: "通知", count: unreadNotificationCount },
+  ];
 
   const normalizedSearchText = searchText.trim().toLowerCase();
   const filteredHotItems = sortHotItems(
@@ -115,6 +134,34 @@ export function App() {
     (minimumHeatScore > 0 ? 1 : 0) +
     (normalizedSearchText ? 1 : 0);
 
+  function handleAddKeyword(keywordText: string) {
+    const normalizedKeyword = keywordText.trim().toLowerCase();
+
+    if (
+      monitorKeywords.some(
+        (monitorKeyword) => monitorKeyword.text.trim().toLowerCase() === normalizedKeyword
+      )
+    ) {
+      return false;
+    }
+
+    setMonitorKeywords((currentKeywords) => {
+      const nextKeyword = createMonitorKeyword(keywordText, currentKeywords.length);
+      return [nextKeyword, ...currentKeywords];
+    });
+    return true;
+  }
+
+  function handleToggleKeyword(keywordId: string) {
+    setMonitorKeywords((currentKeywords) =>
+      currentKeywords.map((monitorKeyword) =>
+        monitorKeyword.id === keywordId
+          ? { ...monitorKeyword, active: !monitorKeyword.active }
+          : monitorKeyword
+      )
+    );
+  }
+
   return (
     <Layout
       topbar={
@@ -124,83 +171,102 @@ export function App() {
           statusLabel={`${mockHotItems.length} 条热点 · ${unreadNotificationCount} 条未读`}
         />
       }
-      tabs={<Tabs activeId="hot" items={tabItems} />}
+      tabs={<Tabs activeId={activeTabId} items={tabItems} onChange={setActiveTabId} />}
     >
-      <ListContainer
-        description="支持关键词搜索、来源与标签筛选、热度门槛和排序，用于快速聚焦当前最值得跟进的热点。"
-        meta={`${filteredHotItems.length} / ${mockHotItems.length} 条 · ${activeFilterCount} 个筛选条件`}
-        title="热点雷达"
-      >
-        <HotRadarControls
-          minimumHeatOptions={minimumHeatOptions}
-          minimumHeatScore={minimumHeatScore}
-          searchText={searchText}
-          selectedSources={selectedSources}
-          selectedTags={selectedTags}
-          sortBy={sortBy}
-          sourceOptions={sourceOptions}
-          tagOptions={tagOptions}
-          onMinimumHeatScoreChange={setMinimumHeatScore}
-          onSearchTextChange={setSearchText}
-          onSelectedSourcesChange={setSelectedSources}
-          onSelectedTagsChange={setSelectedTags}
-          onSortByChange={setSortBy}
-        />
+      {activeTabId === "hot" ? (
+        <div aria-labelledby="tab-hot" id="panel-hot" role="tabpanel" tabIndex={0}>
+          <ListContainer
+            description="支持关键词搜索、来源与标签筛选、热度门槛和排序，用于快速聚焦当前最值得跟进的热点。"
+            meta={`${filteredHotItems.length} / ${mockHotItems.length} 条 · ${activeFilterCount} 个筛选条件`}
+            title="热点雷达"
+          >
+            <HotRadarControls
+              minimumHeatOptions={minimumHeatOptions}
+              minimumHeatScore={minimumHeatScore}
+              searchText={searchText}
+              selectedSources={selectedSources}
+              selectedTags={selectedTags}
+              sortBy={sortBy}
+              sourceOptions={sourceOptions}
+              tagOptions={tagOptions}
+              onMinimumHeatScoreChange={setMinimumHeatScore}
+              onSearchTextChange={setSearchText}
+              onSelectedSourcesChange={setSelectedSources}
+              onSelectedTagsChange={setSelectedTags}
+              onSortByChange={setSortBy}
+            />
 
-        {filteredHotItems.length > 0 ? (
-          <ul className="hot-list" aria-label="热点结果列表">
-            {filteredHotItems.map((hotItem) => (
-              <li className="hot-list__item" key={hotItem.id}>
-                <span className="hot-list__score">{hotItem.heatScore}</span>
-                <div className="hot-list__content">
-                  <div className="hot-list__meta">
-                    <p className="hot-list__source">{hotItem.source}</p>
-                    <span className="hot-list__relevance">
-                      相关度 {hotItem.relevanceScore}
-                    </span>
-                  </div>
-                  <h3 className="hot-list__title">{hotItem.title}</h3>
-                  <p className="hot-list__summary">{hotItem.summary}</p>
-                  <div className="hot-list__footer">
-                    <div className="hot-list__tags" aria-label="热点标签">
-                      {hotItem.tags.map((tag) => (
-                        <span className="hot-list__tag" key={tag}>
-                          #{tag}
+            {filteredHotItems.length > 0 ? (
+              <ul className="hot-list" aria-label="热点结果列表">
+                {filteredHotItems.map((hotItem) => (
+                  <li className="hot-list__item" key={hotItem.id}>
+                    <span className="hot-list__score">{hotItem.heatScore}</span>
+                    <div className="hot-list__content">
+                      <div className="hot-list__meta">
+                        <p className="hot-list__source">{hotItem.source}</p>
+                        <span className="hot-list__relevance">
+                          相关度 {hotItem.relevanceScore}
                         </span>
-                      ))}
+                      </div>
+                      <h3 className="hot-list__title">{hotItem.title}</h3>
+                      <p className="hot-list__summary">{hotItem.summary}</p>
+                      <div className="hot-list__footer">
+                        <div className="hot-list__tags" aria-label="热点标签">
+                          {hotItem.tags.map((tag) => (
+                            <span className="hot-list__tag" key={tag}>
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                        <span className="hot-list__published">
+                          发布时间 {new Date(hotItem.publishedAt).toLocaleDateString("zh-CN")}
+                        </span>
+                      </div>
                     </div>
-                    <span className="hot-list__published">
-                      发布时间 {new Date(hotItem.publishedAt).toLocaleDateString("zh-CN")}
-                    </span>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="empty-state">
-            未找到符合当前搜索与筛选条件的热点，请调整关键词、标签、来源或热度门槛。
-          </p>
-        )}
-      </ListContainer>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-state">
+                未找到符合当前搜索与筛选条件的热点，请调整关键词、标签、来源或热度门槛。
+              </p>
+            )}
+          </ListContainer>
+        </div>
+      ) : null}
 
-      <ListContainer
-        description="展示已启用监控词，便于后续任务复用布局壳接入管理能力。"
-        meta={`${activeKeywords.length} 个启用`}
-        title="监控词概览"
-      >
-        {activeKeywords.length > 0 ? (
-          <div className="keyword-strip">
-            {activeKeywords.map((keyword) => (
-              <span className="keyword-strip__item" key={keyword.id}>
-                {keyword.text} · {keyword.hitCount}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="empty-state">暂无启用监控词</p>
-        )}
-      </ListContainer>
+      {activeTabId === "keywords" ? (
+        <ListContainer
+          description="新增、启停和核对当前监控词，确保后续扫描任务围绕同一组主题持续运行。"
+          meta={`${monitorKeywords.length} 个监控词 · ${activeKeywordCount} 个启用`}
+          title="监控词"
+        >
+          <MonitorKeywordsPanel
+            keywords={monitorKeywords}
+            onAddKeyword={handleAddKeyword}
+            onToggleKeyword={handleToggleKeyword}
+            panelId="panel-keywords"
+            tabId="tab-keywords"
+          />
+        </ListContainer>
+      ) : null}
+
+      {activeTabId === "notifications" ? (
+        <div
+          aria-labelledby="tab-notifications"
+          id="panel-notifications"
+          role="tabpanel"
+          tabIndex={0}
+        >
+          <ListContainer
+            description="通知页面待后续任务接入，这里保留当前未读数量与布局位置。"
+            meta={`${unreadNotificationCount} 条未读`}
+            title="通知"
+          >
+            <p className="empty-state">通知能力将在后续任务中接入。</p>
+          </ListContainer>
+        </div>
+      ) : null}
 
       <ListContainer meta="只读摘要" title="最近扫描">
         {latestScanSummary ? (
