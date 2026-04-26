@@ -1,9 +1,12 @@
+import { useState } from "react";
 import {
   mockHotItems,
   mockMonitorKeywords,
   mockNotificationEvents,
   mockScanSummaries,
 } from "./data/mockData";
+import type { HotItem } from "./types/domain";
+import { HotRadarControls, type HotRadarSort } from "./components/HotRadarControls";
 import { Layout } from "./components/Layout";
 import { ListContainer } from "./components/ListContainer";
 import { Tabs } from "./components/Tabs";
@@ -22,7 +25,96 @@ const tabItems = [
   { id: "notifications", label: "通知", count: unreadNotificationCount },
 ];
 
+const sourceOptions = Array.from(
+  new Set(mockHotItems.map((hotItem) => hotItem.source))
+).sort((leftSource, rightSource) => leftSource.localeCompare(rightSource));
+
+const tagOptions = Array.from(
+  new Set(mockHotItems.flatMap((hotItem) => hotItem.tags))
+).sort((leftTag, rightTag) => leftTag.localeCompare(rightTag));
+
+const minimumHeatOptions = [0, 20, 40, 60, 80];
+
+function matchesSearchText(hotItem: HotItem, normalizedSearchText: string) {
+  if (!normalizedSearchText) {
+    return true;
+  }
+
+  const searchableText = [
+    hotItem.title,
+    hotItem.summary,
+    hotItem.source,
+    hotItem.tags.join(" "),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return searchableText.includes(normalizedSearchText);
+}
+
+function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
+  const sortedItems = [...hotItems];
+
+  if (sortBy === "heat-asc") {
+    sortedItems.sort((leftItem, rightItem) => leftItem.heatScore - rightItem.heatScore);
+    return sortedItems;
+  }
+
+  if (sortBy === "relevance-desc") {
+    sortedItems.sort(
+      (leftItem, rightItem) => rightItem.relevanceScore - leftItem.relevanceScore
+    );
+    return sortedItems;
+  }
+
+  if (sortBy === "latest") {
+    sortedItems.sort(
+      (leftItem, rightItem) =>
+        new Date(rightItem.publishedAt).getTime() -
+        new Date(leftItem.publishedAt).getTime()
+    );
+    return sortedItems;
+  }
+
+  sortedItems.sort((leftItem, rightItem) => rightItem.heatScore - leftItem.heatScore);
+  return sortedItems;
+}
+
 export function App() {
+  const [searchText, setSearchText] = useState("");
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [minimumHeatScore, setMinimumHeatScore] = useState<number>(0);
+  const [sortBy, setSortBy] = useState<HotRadarSort>("heat-desc");
+
+  const normalizedSearchText = searchText.trim().toLowerCase();
+  const filteredHotItems = sortHotItems(
+    mockHotItems.filter((hotItem) => {
+      if (!matchesSearchText(hotItem, normalizedSearchText)) {
+        return false;
+      }
+
+      if (selectedSources.length > 0 && !selectedSources.includes(hotItem.source)) {
+        return false;
+      }
+
+      if (
+        selectedTags.length > 0 &&
+        !selectedTags.every((selectedTag) => hotItem.tags.includes(selectedTag))
+      ) {
+        return false;
+      }
+
+      return hotItem.heatScore >= minimumHeatScore;
+    }),
+    sortBy
+  );
+  const activeFilterCount =
+    selectedSources.length +
+    selectedTags.length +
+    (minimumHeatScore > 0 ? 1 : 0) +
+    (normalizedSearchText ? 1 : 0);
+
   return (
     <Layout
       topbar={
@@ -35,25 +127,60 @@ export function App() {
       tabs={<Tabs activeId="hot" items={tabItems} />}
     >
       <ListContainer
-        description="按热度展示当前可验证的热点摘要，后续搜索、筛选和扫描动作将在独立任务接入。"
-        meta="基础列表容器"
+        description="支持关键词搜索、来源与标签筛选、热度门槛和排序，用于快速聚焦当前最值得跟进的热点。"
+        meta={`${filteredHotItems.length} / ${mockHotItems.length} 条 · ${activeFilterCount} 个筛选条件`}
         title="热点雷达"
       >
-        {mockHotItems.length > 0 ? (
-          <ul className="hot-list">
-            {mockHotItems.map((hotItem) => (
+        <HotRadarControls
+          minimumHeatOptions={minimumHeatOptions}
+          minimumHeatScore={minimumHeatScore}
+          searchText={searchText}
+          selectedSources={selectedSources}
+          selectedTags={selectedTags}
+          sortBy={sortBy}
+          sourceOptions={sourceOptions}
+          tagOptions={tagOptions}
+          onMinimumHeatScoreChange={setMinimumHeatScore}
+          onSearchTextChange={setSearchText}
+          onSelectedSourcesChange={setSelectedSources}
+          onSelectedTagsChange={setSelectedTags}
+          onSortByChange={setSortBy}
+        />
+
+        {filteredHotItems.length > 0 ? (
+          <ul className="hot-list" aria-label="热点结果列表">
+            {filteredHotItems.map((hotItem) => (
               <li className="hot-list__item" key={hotItem.id}>
                 <span className="hot-list__score">{hotItem.heatScore}</span>
-                <div>
-                  <p className="hot-list__source">{hotItem.source}</p>
+                <div className="hot-list__content">
+                  <div className="hot-list__meta">
+                    <p className="hot-list__source">{hotItem.source}</p>
+                    <span className="hot-list__relevance">
+                      相关度 {hotItem.relevanceScore}
+                    </span>
+                  </div>
                   <h3 className="hot-list__title">{hotItem.title}</h3>
                   <p className="hot-list__summary">{hotItem.summary}</p>
+                  <div className="hot-list__footer">
+                    <div className="hot-list__tags" aria-label="热点标签">
+                      {hotItem.tags.map((tag) => (
+                        <span className="hot-list__tag" key={tag}>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="hot-list__published">
+                      发布时间 {new Date(hotItem.publishedAt).toLocaleDateString("zh-CN")}
+                    </span>
+                  </div>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="empty-state">暂无热点数据</p>
+          <p className="empty-state">
+            未找到符合当前搜索与筛选条件的热点，请调整关键词、标签、来源或热度门槛。
+          </p>
         )}
       </ListContainer>
 

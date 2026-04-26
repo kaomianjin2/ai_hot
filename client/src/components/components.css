@@ -166,6 +166,89 @@
   font-weight: 700;
 }
 
+.hot-controls {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid rgba(22, 22, 22, 0.16);
+  background:
+    linear-gradient(135deg, rgba(217, 79, 50, 0.08), transparent 48%),
+    rgba(255, 250, 240, 0.96);
+}
+
+.hot-controls__header,
+.hot-controls__filters,
+.hot-controls__chips,
+.hot-list__meta,
+.hot-list__footer,
+.hot-list__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hot-controls__search {
+  flex: 1 1 320px;
+}
+
+.hot-controls__select-field {
+  flex: 0 1 200px;
+}
+
+.hot-controls__search,
+.hot-controls__select-field,
+.hot-controls__group {
+  display: grid;
+  gap: 8px;
+}
+
+.hot-controls__filters {
+  justify-content: space-between;
+}
+
+.hot-controls__group {
+  flex: 1 1 280px;
+}
+
+.hot-controls__label,
+.hot-list__relevance,
+.hot-list__published,
+.hot-list__tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.hot-controls__label {
+  color: #8f2f24;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.hot-controls__input,
+.hot-controls__select,
+.hot-controls__chip {
+  border: 1px solid #161616;
+  background: #fffaf0;
+  color: #161616;
+  font: inherit;
+}
+
+.hot-controls__input,
+.hot-controls__select {
+  min-height: 46px;
+  padding: 0 14px;
+}
+
+.hot-controls__chip {
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.hot-controls__chip[data-active="true"] {
+  background: #161616;
+  color: #fffaf0;
+}
+
 .hot-list {
   display: grid;
   margin: 0;
@@ -178,6 +261,11 @@
   grid-template-columns: 72px minmax(0, 1fr);
   gap: 18px;
   padding: 18px 20px;
+}
+
+.hot-list__content {
+  display: grid;
+  gap: 10px;
 }
 
 .hot-list__item + .hot-list__item {
@@ -200,8 +288,38 @@
   font-weight: 700;
 }
 
+.hot-list__meta {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hot-list__relevance,
+.hot-list__published,
+.hot-list__tag {
+  color: #4f4a43;
+  font-size: 13px;
+}
+
 .hot-list__summary {
   margin: 8px 0 0;
+}
+
+.hot-list__footer {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hot-list__tags {
+  align-items: center;
+}
+
+.hot-list__tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(22, 22, 22, 0.2);
+  background: #e6efe6;
 }
 
 .keyword-strip,
@@ -224,7 +342,10 @@
 
   .topbar,
   .list-container__header,
-  .hot-list__item {
+  .hot-list__item,
+  .hot-controls__header,
+  .hot-controls__filters,
+  .hot-list__footer {
     display: grid;
   }
 
