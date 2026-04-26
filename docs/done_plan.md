@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 4
+Task Count: 5
 
 ## Rules
 
@@ -149,3 +149,30 @@ dist/assets/index-CyKYq4wj.js   197.02 kB │ gzip: 62.50 kB
 - Side Effects: `rtk npm install` 在 `./worktrees/F0104/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；这些产物均被 `.gitignore` 忽略，未进入提交。任务合并后将按规则移除 `./worktrees/F0104` 并执行 `rtk git worktree prune`。
 - Existing Caller Impact: `client/src/main.tsx` 仍按原方式渲染 `App`。首页从占位内容变为可复用基础布局，新增 `Topbar`、静态 `Tabs`、`Layout`、`ListContainer`，并使用现有 Mock 数据展示只读摘要；不改变 API、类型、Mock 数据、数据库结构或部署流程。F0105/F0106 可复用这些组件继续接入热点雷达页和监控词页。
 - Subagent Flow: explorer PASS; frontend implementation PASS; spec reviewer PASS after browser evidence; code reviewer PASS; tester PASS; user review PASS.
+
+### F0105 实现热点雷达页面
+
+- Phase: Frontend
+- Scope: `client/src/components/*`, `client/src/App.tsx`
+- Verify: Playwright 搜索和筛选检查
+- Depends On: F0104
+- Owner: frontend
+- Write Scope: `client/src/components/*`, `client/src/App.tsx`
+- State: Done
+- Verification Command: `cd worktrees/F0105/client && rtk npm install && rtk npm run build`; Playwright: snapshot, search title/source/tag, min heat 80, combined empty state, heat-asc sort, 390x844 overflow check
+- Verification Output:
+
+```text
+build: `tsc -b tsconfig.json tsconfig.node.json && vite build`; `✓ built in 71ms`
+Playwright: search/filter/sort PASS; `390x844` reported `hasHorizontalOverflow=false`
+```
+
+- Browser Verification: Playwright verified `热点雷达`, `启用监控词`, and `最近扫描` remained visible; `browser` matched the title `Open-source agent benchmark adds browser task coverage`; `GitHub` matched source; `planning` matched tag; min heat `80` changed results from `3 / 3` to `1 / 3`; combined `GitHub + #planning` showed the empty-state copy; `heat-asc` sorted scores as `18 → 76 → 92`.
+- Screenshot Evidence: `.playwright-cli/page-2026-04-26T10-57-26-438Z.png`, `.playwright-cli/page-2026-04-26T10-58-51-543Z.png`
+- Exit Code: 0
+- Result: PASS
+- User Review: PASS
+- User Review Source: 用户回复“通过”
+- Side Effects: `rtk npm install` 在 `./worktrees/F0105/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；Playwright 生成 `.playwright-cli/` 截图文件；这些产物均被 `.gitignore` 忽略，未进入提交。浏览器控制台存在范围外 `favicon.ico` 404，不影响 F0105 验收。
+- Existing Caller Impact: `client/src/main.tsx` 仍按原方式渲染 `App`。本次新增 `HotRadarControls` 并在热点雷达页接入搜索、来源筛选、标签筛选、最低热度筛选、排序和空态展示；不改变 API、类型定义、Mock 数据、数据库结构或部署流程。F0106/F0107/F0108 后续仍涉及 `client/src/App.tsx`，必须串行执行。
+- Subagent Flow: explorer PASS; frontend implementation PASS after dependency install; spec reviewer PASS after tester evidence; code reviewer PASS; tester PASS; user review PASS.
