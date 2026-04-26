@@ -41,6 +41,8 @@
 - `todo + doing + done` 任务总数必须保持不变。
 - 三份队列顶部 `Task Count` 必须唯一、准确。
 - `todo + doing + done` 总数必须等于 `docs/development-plan.md` 的 Feature Unit 总数。
+- 任务队列移动完成后，必须将任务 worktree 分支合并到主分支，再在主分支自动执行 `rtk git add`、`rtk git commit` 和 `rtk git push`。
+- 自动提交说明必须使用中文，只需写明本次完成了什么工作。
 
 ## 矫正
 
