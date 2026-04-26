@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 5
+Task Count: 6
 
 ## Rules
 
@@ -176,3 +176,30 @@ Playwright: search/filter/sort PASS; `390x844` reported `hasHorizontalOverflow=f
 - Side Effects: `rtk npm install` 在 `./worktrees/F0105/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；Playwright 生成 `.playwright-cli/` 截图文件；这些产物均被 `.gitignore` 忽略，未进入提交。浏览器控制台存在范围外 `favicon.ico` 404，不影响 F0105 验收。
 - Existing Caller Impact: `client/src/main.tsx` 仍按原方式渲染 `App`。本次新增 `HotRadarControls` 并在热点雷达页接入搜索、来源筛选、标签筛选、最低热度筛选、排序和空态展示；不改变 API、类型定义、Mock 数据、数据库结构或部署流程。F0106/F0107/F0108 后续仍涉及 `client/src/App.tsx`，必须串行执行。
 - Subagent Flow: explorer PASS; frontend implementation PASS after dependency install; spec reviewer PASS after tester evidence; code reviewer PASS; tester PASS; user review PASS.
+
+### F0106 实现监控词页面
+
+- Phase: Frontend
+- Scope: `client/src/components/*`, `client/src/App.tsx`
+- Verify: Playwright 监控词添加和开关检查
+- Depends On: F0104
+- Owner: frontend
+- Write Scope: `client/src/components/*`, `client/src/App.tsx`
+- State: Done
+- Verification Command: `cd worktrees/F0106/client && rtk npm install && rtk npm run build`; Playwright: click 监控词 tab, add `  LLM Ops `, duplicate add, empty add, toggle LLM Ops, resize 390x844 and overflow check
+- Verification Output:
+
+```text
+build: `tsc -b tsconfig.json tsconfig.node.json && vite build`; `✓ built in 344ms`
+Playwright: add/duplicate/empty/toggle PASS; `390x844` reported `hasHorizontalOverflow=false`
+```
+
+- Browser Verification: Playwright verified initial `3 个监控词 · 2 个启用`; adding `  LLM Ops  ` produced `4 个监控词 · 3 个启用`, `已新增监控词：LLM Ops`, `LLM Ops 已开启`, and tab `监控词 3`; duplicate add showed `监控词已存在，请勿重复添加。`; empty add showed `请输入监控词后再提交。`; toggling `LLM Ops` showed `LLM Ops 已停用`, `4 个监控词 · 2 个启用`, and tab `监控词 2`; `390x844` eval returned `scrollWidth=390`, `clientWidth=390`, `hasHorizontalOverflow=false`, visible input and toggle buttons.
+- Screenshot Evidence: `.playwright-cli/page-2026-04-26T12-48-12-339Z.png`
+- Exit Code: 0
+- Result: PASS
+- User Review: PASS
+- User Review Source: 用户回复“通过”
+- Side Effects: `rtk npm install` 在 `./worktrees/F0106/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；Playwright 生成 `.playwright-cli/` 快照和截图文件；这些产物均被 `.gitignore` 忽略，未进入提交。验证期间启动过 Vite dev server，已用 `rtk pkill -f vite` 停止。安装依赖时验证工具短暂向 `.gitignore` 追加过无关 `.gstack/`，已移除该无关改动。
+- Existing Caller Impact: `client/src/main.tsx` 仍按原方式渲染 `App`。`Tabs` 从静态展示升级为可访问 tab 控件，当前唯一调用方 `App` 已同步；顶栏仍展示未读通知数。新增 `MonitorKeywordsPanel` 并在监控词页接入新增、trim、重复拦截、空输入拦截、启停和计数同步；不改变 API、类型定义、Mock 数据文件、数据库结构或部署流程。F0107/F0108 后续仍涉及 `client/src/App.tsx`，必须串行执行。
+- Subagent Flow: explorer PASS; frontend implementation PASS after review fixes; spec reviewer PASS; code reviewer PASS; tester PASS after dependency install; user review PASS.

@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 17
+Task Count: 16
 
 ## Rules
 
@@ -14,13 +14,6 @@ Task Count: 17
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0106 实现监控词页面
-
-- Phase: Frontend
-- Scope: `client/src/components/*`, `client/src/App.tsx`
-- Verify: Playwright 监控词添加和开关检查
-- Depends On: F0104
 
 ### F0107 实现搜索页面
 
