@@ -1,7 +1,7 @@
 ---
 name: tester
 description: 只做测试验证，运行构建、测试、curl、Playwright 并报告真实结果
-model: deepseek-v4-flash
+model: haiku
 tools: [Read, Grep, Glob, Bash]
 maxTurns: 50
 ---

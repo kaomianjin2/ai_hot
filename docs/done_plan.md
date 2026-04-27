@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 6
+Task Count: 10
 
 ## Rules
 
@@ -203,3 +203,75 @@ Playwright: add/duplicate/empty/toggle PASS; `390x844` reported `hasHorizontalOv
 - Side Effects: `rtk npm install` 在 `./worktrees/F0106/client` 中生成 `node_modules/`；`rtk npm run build` 生成 `client/dist/` 和 TypeScript build info；Playwright 生成 `.playwright-cli/` 快照和截图文件；这些产物均被 `.gitignore` 忽略，未进入提交。验证期间启动过 Vite dev server，已用 `rtk pkill -f vite` 停止。安装依赖时验证工具短暂向 `.gitignore` 追加过无关 `.gstack/`，已移除该无关改动。
 - Existing Caller Impact: `client/src/main.tsx` 仍按原方式渲染 `App`。`Tabs` 从静态展示升级为可访问 tab 控件，当前唯一调用方 `App` 已同步；顶栏仍展示未读通知数。新增 `MonitorKeywordsPanel` 并在监控词页接入新增、trim、重复拦截、空输入拦截、启停和计数同步；不改变 API、类型定义、Mock 数据文件、数据库结构或部署流程。F0107/F0108 后续仍涉及 `client/src/App.tsx`，必须串行执行。
 - Subagent Flow: explorer PASS; frontend implementation PASS after review fixes; spec reviewer PASS; code reviewer PASS; tester PASS after dependency install; user review PASS.
+
+### F0107 实现搜索页面
+
+- Phase: Frontend
+- Scope: `client/src/components/*`, `client/src/App.tsx`
+- Verify: Playwright 搜索页检查
+- Depends On: F0105
+- Owner: frontend
+- Channel: Heavy
+- Write Scope: `client/src/components/SearchPage.tsx`, `client/src/components/components.css`, `client/src/App.tsx`
+- State: Done
+- Verification Command: `cd client && ./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build`; Playwright 搜索页交互
+- Verification Output: `✓ built in 400ms`; 搜索 "agent" 返回 1 条匹配结果; 搜索 "zzzznotfound" 显示 empty state
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `client/src/components/SearchPage.tsx`; `components.css` 新增 `.search-page*` 样式段; 不影响后端、API、数据库或部署
+- Existing Caller Impact: `App.tsx` 新增"搜索" tab 和 SearchPage 渲染分支; 热点/监控词/通知三个已有 tab 行为不变
+- Subagent Flow: explorer 跳过(服务不可用，主 agent 自行探索); frontend 由主 agent 直接实现; tester 由主 agent 通过 Playwright MCP 验证; PASS
+
+### F0108 实现立即扫描 Mock 行为
+
+- Phase: Frontend
+- Scope: `client/src/App.tsx`
+- Verify: Playwright 点击扫描检查
+- Depends On: F0105
+- Owner: frontend
+- Channel: Light
+- Write Scope: `client/src/App.tsx`
+- State: Done
+- Verification Command: `cd client && npm run build`; Playwright 点击扫描交互
+- Verification Output: `✓ built in 175ms`; 初始 succeeded/12/4 → 点击后 running/0/0（按钮 disabled "扫描中…"）→ 1.5s 后 succeeded/8/3（按钮 enabled "立即扫描"）; 可重复触发
+- Exit Code: 0
+- Result: PASS
+- Side Effects: `scanSummary` 从模块级常量提升为 useState；`mockScanSummaries` 仍被引用为初始值；不影响后端、API、数据库或部署
+- Existing Caller Impact: Topbar `actionSlot` 从占位文本变为功能按钮；底部"最近扫描"区块改读 state 且移除 null 分支；热点/搜索/监控词/通知四个 tab 行为不变
+- Subagent Flow: frontend implementation PASS; tester 由主 agent 通过 Playwright MCP 验证; PASS
+
+### F0109 前端响应式与浏览器验证
+
+- Phase: Frontend
+- Scope: `client/src/styles.css`
+- Verify: Playwright 390px/768px/1440px 截图
+- Depends On: F0104-F0108
+- Owner: frontend
+- Channel: Light
+- Write Scope: `client/src/styles.css`
+- State: Done
+- Verification Command: `cd client && npm run build`; Playwright 390x844/768x1024/1440x900 溢出检测
+- Verification Output: `✓ built in 87ms`; 三个视口 scrollWidth === clientWidth，hasOverflow=false，body/root overflow-x=hidden
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 移除旧占位样式（`.app-shell`、`.eyebrow`、`h1`、`.summary`、`@media`），为 body 和 #root 添加 `overflow-x: hidden`；不影响后端、API、数据库或部署
+- Existing Caller Impact: 所有使用 `styles.css` 的页面（热点/搜索/监控词/通知）行为不变；移除的旧样式已在 F0104 后不再被任何组件引用
+- Subagent Flow: frontend implementation PASS; tester Playwright PASS
+
+### F0201 创建后端工程
+
+- Phase: Backend
+- Scope: `server/*`
+- Verify: `cd server && npm run build`
+- Depends On: -
+- Owner: backend
+- Channel: Heavy
+- Write Scope: `server/*`
+- State: Done
+- Verification Command: `cd server && npm run build`
+- Verification Output: `> tsc`（无错误输出）
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新建 `server/` 目录，包含 `package.json`（fastify 5.4、typescript 6.0、tsx 4.19）、`tsconfig.json`、`src/index.ts`（Fastify server + /health 端点）；`node_modules/` 和 `dist/` 被 `.gitignore` 忽略
+- Existing Caller Impact: 新增后端工程骨架，不影响前端、API 契约、数据库结构或部署流程；F0202 可继续在 `server/src/domain/types.ts` 定义领域模型
+- Subagent Flow: backend implementation PASS; tester build PASS

@@ -102,11 +102,11 @@
 
 | 角色 | Agent | 模型 | 权限 | 职责 |
 |---|---|---|---|---|
-| 规划 | `planner` | deepseek-v4-flash | 只读 | 任务拆解与规划 |
-| UI 设计 | `ui-designer` | deepseek-v4-pro | 读写 | UI 方案，输出到 `design/**` |
-| 前端实现 | `frontend` | deepseek-v4-pro | 读写 | 前端开发 `client/**` |
-| 后端实现 | `backend` | deepseek-v4-pro | 读写 | 后端开发 `server/**` |
-| 探索 | `explorer` | deepseek-v4-flash | 只读 | 代码探索与证据收集（按需启用） |
-| 集成 | `integrator` | deepseek-v4-pro | 读写 | API 契约、跨端集成 |
-| 综合审查 | `reviewer` | deepseek-v4-pro | 只读 | 规格符合度 + 代码质量审查 |
-| 测试 | `tester` | deepseek-v4-flash | 只读+Bash | 构建、测试、Playwright 验证 |
+| 规划 | `planner` | opus | 只读 | 任务拆解与规划 |
+| UI 设计 | `ui-designer` | sonnet | 读写 | UI 方案，输出到 `design/**` |
+| 前端实现 | `frontend` | sonnet | 读写 | 前端开发 `client/**` |
+| 后端实现 | `backend` | sonnet | 读写 | 后端开发 `server/**` |
+| 探索 | `explorer` | sonnet | 只读 | 代码探索与证据收集（按需启用） |
+| 集成 | `integrator` | sonnet | 读写 | API 契约、跨端集成 |
+| 综合审查 | `reviewer` | sonnet | 只读 | 规格符合度 + 代码质量审查 |
+| 测试 | `tester` | haiku | 只读+Bash | 构建、测试、Playwright 验证 |

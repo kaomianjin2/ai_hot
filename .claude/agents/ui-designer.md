@@ -1,7 +1,7 @@
 ---
 name: ui-designer
 description: 只负责项目 UI 设计、修改和最终输出，不参与前端实现
-model: deepseek-v4-pro
+model: sonnet
 tools: [Read, Grep, Glob, Write, Edit, Bash]
 maxTurns: 50
 ---

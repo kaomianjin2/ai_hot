@@ -1,7 +1,7 @@
 ---
 name: frontend
 description: 只负责前端开发，不改后端，不维护队列
-model: deepseek-v4-pro
+model: sonnet
 tools: [Read, Grep, Glob, Write, Edit, Bash]
 maxTurns: 80
 ---

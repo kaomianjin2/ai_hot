@@ -31,6 +31,7 @@
 
 ## 禁止
 
+- 主 agent 禁止实现或修改任何业务代码（`client/**`、`server/**`），必须通过 subagent（frontend / backend / integrator）执行；主 agent 仅负责探索、调度、审查和队列维护
 - 未经允许安装或升级依赖
 - 未经允许修改 `.env`、`.gitignore`、密钥、证书、生产配置
 - 未经允许修改数据库结构、接口定义、部署流程

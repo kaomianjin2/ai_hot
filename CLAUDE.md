@@ -28,14 +28,14 @@ AI 热点雷达 — 前端展示热点、监控词、搜索与扫描；后端采
 
 | Agent | 模型 | 权限 | 职责 |
 |---|---|---|---|
-| planner | deepseek-v4-flash | 只读 | 任务拆解与规划 |
-| ui-designer | deepseek-v4-pro | 读写 | UI 设计，输出到 `design/**` |
-| frontend | deepseek-v4-pro | 读写 | 前端开发 `client/**` |
-| backend | deepseek-v4-pro | 读写 | 后端开发 `server/**` |
-| explorer | deepseek-v4-flash | 只读 | 代码探索与证据收集（按需启用） |
-| integrator | deepseek-v4-pro | 读写 | API 契约、跨端集成 |
-| reviewer | deepseek-v4-pro | 只读 | 规格符合度 + 代码质量综合审查 |
-| tester | deepseek-v4-flash | 只读+Bash | 构建、测试、Playwright 验证 |
+| planner | opus | 只读 | 任务拆解与规划 |
+| ui-designer | sonnet | 读写 | UI 设计，输出到 `design/**` |
+| frontend | sonnet | 读写 | 前端开发 `client/**` |
+| backend | sonnet | 读写 | 后端开发 `server/**` |
+| explorer | sonnet | 只读 | 代码探索与证据收集（按需启用） |
+| integrator | sonnet | 读写 | API 契约、跨端集成 |
+| reviewer | sonnet | 只读 | 规格符合度 + 代码质量综合审查 |
+| tester | haiku | 只读+Bash | 构建、测试、Playwright 验证 |
 
 ## Git Worktree
 

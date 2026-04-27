@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: 综合审查：规格符合度、代码质量、Scope 越界、调用方影响
-model: deepseek-v4-pro
+model: sonnet
 tools: [Read, Grep, Glob]
 maxTurns: 50
 ---

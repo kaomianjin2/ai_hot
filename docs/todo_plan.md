@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 16
+Task Count: 12
 
 ## Rules
 
@@ -14,34 +14,6 @@ Task Count: 16
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0107 实现搜索页面
-
-- Phase: Frontend
-- Scope: `client/src/components/*`, `client/src/App.tsx`
-- Verify: Playwright 搜索页检查
-- Depends On: F0105
-
-### F0108 实现立即扫描 Mock 行为
-
-- Phase: Frontend
-- Scope: `client/src/App.tsx`
-- Verify: Playwright 点击扫描检查
-- Depends On: F0105
-
-### F0109 前端响应式与浏览器验证
-
-- Phase: Frontend
-- Scope: `client/src/styles.css`
-- Verify: Playwright 390px/768px/1440px 截图
-- Depends On: F0104-F0108
-
-### F0201 创建后端工程
-
-- Phase: Backend
-- Scope: `server/*`
-- Verify: `cd server && rtk npm run build`
-- Depends On: -
 
 ### F0202 定义后端领域模型
 

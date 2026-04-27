@@ -1,7 +1,7 @@
 ---
 name: explorer
 description: 只做代码探索与证据收集，定位真实调用链、入口、依赖和相关文件
-model: deepseek-v4-flash
+model: sonnet
 tools: [Read, Grep, Glob]
 maxTurns: 50
 ---

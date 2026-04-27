@@ -1,7 +1,7 @@
 ---
 name: backend
 description: 只负责后端开发，不改前端，不维护队列
-model: deepseek-v4-pro
+model: sonnet
 tools: [Read, Grep, Glob, Write, Edit, Bash]
 maxTurns: 80
 ---

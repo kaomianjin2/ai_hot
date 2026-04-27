@@ -1,7 +1,7 @@
 ---
 name: planner
 description: 用于项目立项、计划重写、范围重审，产出可交付队列的开发计划
-model: deepseek-v4-flash
+model: opus
 tools: [Read, Grep, Glob]
 maxTurns: 50
 ---

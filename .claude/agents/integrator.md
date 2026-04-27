@@ -1,7 +1,7 @@
 ---
 name: integrator
 description: 只负责前后端 API 契约、跨端接入、数据流集成和端到端链路
-model: deepseek-v4-pro
+model: sonnet
 tools: [Read, Grep, Glob, Write, Edit, Bash]
 maxTurns: 80
 ---
