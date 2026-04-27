@@ -5,7 +5,7 @@ import {
   mockNotificationEvents,
   mockScanSummaries,
 } from "./data/mockData";
-import type { HotItem, MonitorKeyword } from "./types/domain";
+import type { HotItem, MonitorKeyword, ScanSummary } from "./types/domain";
 import { HotRadarControls, type HotRadarSort } from "./components/HotRadarControls";
 import { Layout } from "./components/Layout";
 import { ListContainer } from "./components/ListContainer";
@@ -18,7 +18,6 @@ import "./components/components.css";
 const unreadNotificationCount = mockNotificationEvents.filter(
   (notificationEvent) => !notificationEvent.read
 ).length;
-const latestScanSummary = mockScanSummaries[0];
 
 const sourceOptions = Array.from(
   new Set(mockHotItems.map((hotItem) => hotItem.source))
@@ -100,6 +99,8 @@ export function App() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minimumHeatScore, setMinimumHeatScore] = useState<number>(0);
   const [sortBy, setSortBy] = useState<HotRadarSort>("heat-desc");
+  const [scanSummary, setScanSummary] = useState<ScanSummary>(mockScanSummaries[0]);
+  const isScanning = scanSummary.status === "running";
   const activeKeywordCount = monitorKeywords.filter((keyword) => keyword.active).length;
   const tabItems = [
     { id: "hot", label: "热点", count: mockHotItems.length },
@@ -164,11 +165,46 @@ export function App() {
     );
   }
 
+  function handleStartScan() {
+    if (isScanning) return;
+
+    const scanId = `scan-manual-${Date.now().toString(36)}`;
+    const startedAt = new Date().toISOString();
+
+    setScanSummary({
+      id: scanId,
+      status: "running",
+      startedAt,
+      discoveredCount: 0,
+      matchedCount: 0,
+    });
+
+    setTimeout(() => {
+      setScanSummary({
+        id: scanId,
+        status: "succeeded",
+        startedAt,
+        completedAt: new Date().toISOString(),
+        discoveredCount: 8,
+        matchedCount: 3,
+      });
+    }, 1500);
+  }
+
   return (
     <Layout
       topbar={
         <Topbar
-          actionSlot={<span>操作入口预留</span>}
+          actionSlot={
+            <button
+              aria-label="立即扫描"
+              disabled={isScanning}
+              onClick={handleStartScan}
+              type="button"
+            >
+              {isScanning ? "扫描中…" : "立即扫描"}
+            </button>
+          }
           brand="AI Hot Radar"
           statusLabel={`${mockHotItems.length} 条热点 · ${unreadNotificationCount} 条未读`}
         />
@@ -285,15 +321,11 @@ export function App() {
       ) : null}
 
       <ListContainer meta="只读摘要" title="最近扫描">
-        {latestScanSummary ? (
-          <p className="scan-summary">
-            状态：{latestScanSummary.status} · 发现：
-            {latestScanSummary.discoveredCount} · 命中：
-            {latestScanSummary.matchedCount}
-          </p>
-        ) : (
-          <p className="empty-state">暂无扫描记录</p>
-        )}
+        <p className="scan-summary">
+          状态：{scanSummary.status} · 发现：
+          {scanSummary.discoveredCount} · 命中：
+          {scanSummary.matchedCount}
+        </p>
       </ListContainer>
     </Layout>
   );
