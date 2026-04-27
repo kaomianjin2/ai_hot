@@ -19,25 +19,17 @@ description = "后端实现"
 config_file = "agents/backend.toml"
 
 [agents.explorer]
-description = "代码与上下文探索"
+description = "代码与上下文探索（按需启用）"
 config_file = "agents/explorer.toml"
 
 [agents.integrator]
 description = "集成与联调"
 config_file = "agents/integrator.toml"
 
-[agents.spec_reviewer]
-description = "需求与规格评审"
-config_file = "agents/spec_reviewer.toml"
-
-[agents.code_reviewer]
-description = "代码评审"
-config_file = "agents/code_reviewer.toml"
+[agents.reviewer]
+description = "规格符合度 + 代码质量综合审查"
+config_file = "agents/reviewer.toml"
 
 [agents.tester]
 description = "测试与验证"
 config_file = "agents/tester.toml"
-
-[agents.release]
-description = "发布与交付检查"
-config_file = "agents/release.toml"

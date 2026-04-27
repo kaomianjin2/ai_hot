@@ -20,8 +20,11 @@ ui_design_flow = [
 batch_flow = [
   "explorer",
   "implementation",
-  "spec_reviewer",
-  "code_reviewer",
+  "reviewer",
+  "tester",
+]
+batch_flow_light = [
+  "implementation",
   "tester",
 ]
 implementation_agents = [
@@ -29,10 +32,6 @@ implementation_agents = [
   "backend",
   "integrator",
 ]
-release_gate = [
-  "release",
-]
-user_review_gate = "tester_pass_immediate"
 
 [workflow.constraints]
 main_agent_writes_business_code = false
@@ -49,6 +48,5 @@ parallel_forbids_shared_app_entry = true
 [workflow.conditions]
 planner = "项目立项、计划重写、范围重审时触发"
 ui_designer = "UI 规格缺失、设计变更、视觉验收前触发"
-user_review = "tester 真实验证 PASS 后立即触发；用户复核 PASS 前禁止 release、移动计划状态、合并或清理 worktree"
-release = "tester 真实验证 PASS 且用户复核 PASS 后触发"
-frontend_playwright_repair = "前端页面设计或视觉改动必须使用 Playwright 真实浏览器验证；失败时主 Agent 调度对应实现 subagent 修复"
+explorer = "仅在 Heavy 通道、Scope 标注 Unknown、调用链未知或主 agent 明确点名时启用"
+frontend_playwright_repair = "视觉改动（参见 testing.md 视觉改动判定）必须使用 Playwright 真实浏览器验证；失败时主 agent 调度对应实现 subagent 修复"

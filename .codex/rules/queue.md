@@ -23,26 +23,35 @@
 - 批量领取任务时，一次最多领取 3 个。
 - 批量领取只允许领取 `Depends On` 已经进入 `docs/done_plan.md` 的任务。
 - 同批任务的 `Write Scope` 必须精确到最终文件或目录，不能重叠到同一文件、同一共享入口或同一未拆分目录。
-- 共享入口文件默认串行，包括 `client/src/App.tsx`、`client/src/components/Topbar.tsx` 和后端扫描链路服务文件。
+- 共享入口文件默认串行，任何修改必须独占领取：
+  - 前端：`client/src/App.tsx`、`client/src/main.tsx`、`client/src/components/Topbar.tsx`、`client/vite.config.ts`、`client/tsconfig*.json`、`client/package.json`、`client/src/styles.css`
+  - 后端：`server/src/index.ts`、`server/src/app.ts`、`server/src/db/schema.ts`、`server/tsconfig.json`、`server/package.json`
+  - 根：`package.json`、`.gitignore`、`CLAUDE.md`、`.claude/rules/*`、`.claude/agents/*`
+  - 通用规则：被 ≥2 个 Feature Unit 在 Scope 中引用的文件，自动按共享入口处理。
 - 依赖同一个未完成上游的任务禁止并行；依赖同一个已完成上游的任务，只有写入文件完全独立时才允许并行。
 - 状态迁移时同步更新源队列和目标队列的 `Task Count`。
-- 每条 doing 任务必须包含 `Owner`、`Write Scope`、`State`。
-- `State` 只允许 `In Progress`、`Blocked`、`Ready For QA`。
+- 每条 doing 任务必须包含 `Owner`、`Channel`、`Write Scope`、`State`。
+- `Channel` 只允许 `Light`、`Heavy`。
+- `State` 只允许 `In Progress`、`Blocked`、`Done Pending`、`Withdrawn`。
 - 禁止两个任务声明重叠的 `Write Scope`。
 
 ## 完成
 
-- `Ready For QA` 只表示等待 tester 验证，不表示完成。
-- tester PASS 结果已汇总，且用户复核 PASS 后，才能从 `docs/doing_plan.md` 移动到 `docs/done_plan.md`。
-- 用户未明确复核通过前，禁止移动计划状态、写入 `docs/done_plan.md`、删除 worktree 或执行 `rtk git worktree prune`。
-- 任务移动到 `docs/done_plan.md` 后，必须移除当前任务 worktree，并执行 `rtk git worktree prune`。
+- tester PASS（退出码 0 且输出符合验收）后，主 agent 直接将任务从 `docs/doing_plan.md` 移动到 `docs/done_plan.md`，不再设用户复核环节。
+- 完成记录字段不再包含 `User Review`、`User Review Source`。
+- 单任务完成顺序：worktree 分支合并到主分支 → 移动计划状态、写入 done → 删除 worktree 并执行 `rtk git worktree prune`。
+- 同批次所有任务完成后，主 agent 统一在主分支执行 `rtk git add`、`rtk git commit`、`rtk git push`，使用单条总结性中文提交说明，避免历史碎片化。
 - 移除 worktree 后必须执行 `rtk git worktree list` 和 `rtk git status --short` 验证清理结果。
 - 验证失败的任务保留在 `docs/doing_plan.md`，状态标记为 `Blocked`。
-- `todo + doing + done` 任务总数必须保持不变。
+- `todo + doing + done` 任务总数必须保持不变（Withdrawn 任务退回 todo 末尾，仍计入守恒）。
 - 三份队列顶部 `Task Count` 必须唯一、准确。
 - `todo + doing + done` 总数必须等于 `docs/development-plan.md` 的 Feature Unit 总数。
-- 任务队列移动完成后，必须将任务 worktree 分支合并到主分支，再在主分支自动执行 `rtk git add`、`rtk git commit` 和 `rtk git push`。
-- 自动提交说明必须使用中文，只需写明本次完成了什么工作。
+
+## 撤回
+
+- 探索后发现需求不可行、被其它任务覆盖或重复时，主 agent 可将任务标记 `Withdrawn`。
+- Withdrawn 任务从 doing 移回 todo 末尾，附 `State: Withdrawn` 与撤回原因。
+- Withdrawn 不计入 done。
 
 ## 矫正
 

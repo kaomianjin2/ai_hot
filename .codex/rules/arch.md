@@ -46,14 +46,15 @@ Sources: Mock -> RSS -> GitHub
 
 - `planning_flow`：只在项目立项、计划重写、范围重审时运行 `planner`。
 - `ui_design_flow`：只在 UI 规格缺失、设计变更、视觉验收前运行 `ui_designer`。
-- `batch_flow`：固定为 `explorer -> implementation_agent -> spec_reviewer -> code_reviewer -> tester`。
+- `batch_flow` 按通道执行：
+  - Heavy（默认）：`explorer -> implementation_agent -> reviewer -> tester`
+  - Light：`implementation_agent -> tester`
 - `batch_flow` 覆盖 Feature Unit 执行、bug 修复、任意业务代码改动和业务操作。
 - `implementation_agent` 只能由主 Agent 按 Write Scope 分配。
 - 仅 `client/**` 使用 `frontend`。
 - 仅 `server/**` 使用 `backend`。
 - 跨 `client/**` 与 `server/**`、API 契约、端到端链路使用 `integrator`。
-- `user_review_gate`：tester PASS 后，主 Agent 请求用户复核。
-- `release_gate`：用户复核 PASS 后运行 `release` 做交付收口；用户复核 PASS 前禁止 release。
+- tester PASS 即视为完成，主 agent 直接迁 done。
 
 ## 并发原则
 

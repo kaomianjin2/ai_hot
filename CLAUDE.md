@@ -18,12 +18,13 @@ AI 热点雷达 — 前端展示热点、监控词、搜索与扫描；后端采
 |---|---|
 | `.claude/rules/architecture.md` | 架构边界、技术约束、并发原则 |
 | `.claude/rules/coding.md` | 编码规范、修改边界、禁止事项 |
-| `.claude/rules/testing.md` | 测试标准、验证门禁、记录格式 |
-| `.claude/rules/workflow.md` | 队列工作流、subagent 调度、worktree 管理 |
+| `.claude/rules/testing.md` | 测试标准、验证门禁、记录格式、视觉改动判定 |
+| `.claude/rules/workflow.md` | 队列工作流、Light/Heavy 通道、subagent 调度、worktree 管理 |
+| `.claude/rules/skills.md` | Subagent skill 使用矩阵 |
 
 ## Subagent
 
-10 个自定义 agent，定义在 `.claude/agents/`：
+8 个自定义 agent，定义在 `.claude/agents/`：
 
 | Agent | 模型 | 权限 | 职责 |
 |---|---|---|---|
@@ -31,12 +32,10 @@ AI 热点雷达 — 前端展示热点、监控词、搜索与扫描；后端采
 | ui-designer | deepseek-v4-pro | 读写 | UI 设计，输出到 `design/**` |
 | frontend | deepseek-v4-pro | 读写 | 前端开发 `client/**` |
 | backend | deepseek-v4-pro | 读写 | 后端开发 `server/**` |
-| explorer | deepseek-v4-flash | 只读 | 代码探索与证据收集 |
+| explorer | deepseek-v4-flash | 只读 | 代码探索与证据收集（按需启用） |
 | integrator | deepseek-v4-pro | 读写 | API 契约、跨端集成 |
-| spec-reviewer | deepseek-v4-pro | 只读 | 规格符合度审查 |
-| code-reviewer | deepseek-v4-pro | 只读 | 代码质量审查 |
-| tester | deepseek-v4-flash | 读写 | 构建、测试、Playwright 验证 |
-| release | deepseek-v4-pro | 只读 | 交付收口汇总 |
+| reviewer | deepseek-v4-pro | 只读 | 规格符合度 + 代码质量综合审查 |
+| tester | deepseek-v4-flash | 只读+Bash | 构建、测试、Playwright 验证 |
 
 ## Git Worktree
 

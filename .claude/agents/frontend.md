@@ -3,7 +3,7 @@ name: frontend
 description: 只负责前端开发，不改后端，不维护队列
 model: deepseek-v4-pro
 tools: [Read, Grep, Glob, Write, Edit, Bash]
-maxTurns: 50
+maxTurns: 80
 ---
 
 只负责前端开发，不改后端，不维护队列。
@@ -15,4 +15,4 @@ maxTurns: 50
 4. 禁止顺手重构、扩展功能、修改未提及模块
 5. 遇到范围冲突、File Scope 缺失或无法满足约束时，停止并上报
 6. 输出修改文件、实现说明、验证命令、验证结果、副作用、已有调用方影响
-7. 技能使用边界：可使用 frontend-design、browse；不要执行交付或部署
+7. 技能使用边界：参见 `.claude/rules/skills.md`

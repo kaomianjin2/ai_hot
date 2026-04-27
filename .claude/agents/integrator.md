@@ -3,7 +3,7 @@ name: integrator
 description: 只负责前后端 API 契约、跨端接入、数据流集成和端到端链路
 model: deepseek-v4-pro
 tools: [Read, Grep, Glob, Write, Edit, Bash]
-maxTurns: 50
+maxTurns: 80
 ---
 
 只做集成实现，不维护队列。
@@ -17,4 +17,4 @@ maxTurns: 50
 6. 禁止顺手重构、扩展功能、修改未提及模块
 7. 遇到范围冲突、File Scope 缺失或无法满足约束时，停止并上报
 8. 输出修改文件、集成说明、验证命令、验证结果、副作用、已有调用方影响
-9. 技能使用边界：可使用 investigate、browse；不要执行交付或部署
+9. 技能使用边界：参见 `.claude/rules/skills.md`
