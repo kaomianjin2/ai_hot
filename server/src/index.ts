@@ -1,10 +1,13 @@
 import Fastify from 'fastify';
+import { keywordsRoutes } from './routes/keywords.js';
 
 const app = Fastify({ logger: false });
 
 app.get('/health', async () => {
   return { status: 'ok' };
 });
+
+app.register(keywordsRoutes);
 
 const start = async () => {
   try {
