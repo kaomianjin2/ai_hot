@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 11
+Task Count: 16
 
 ## Rules
 
@@ -293,3 +293,102 @@ Playwright: add/duplicate/empty/toggle PASS; `390x844` reported `hasHorizontalOv
 - Side Effects: 新建 `server/src/domain/types.ts`，定义 HotItem、MonitorKeyword、NotificationEvent、ScanStatus、ScanSummary 及对应 CreateXxxInput 类型
 - Existing Caller Impact: 无，当前 `server/src/index.ts` 未引用此文件，后续模块按需 import
 - Subagent Flow: backend implementation PASS; tester build PASS
+
+### F0203 初始化 SQLite
+
+- Phase: Backend
+- Scope: `server/src/db/*`
+- Verify: 服务启动后检查数据表
+- Depends On: F0202
+- Owner: backend
+- Channel: Heavy
+- Write Scope: `server/src/db/*`
+- State: Done
+- Verification Command: `cd server && npm run build`; `node f0203-verify.mjs`（schema 创建/insert/update/read）; `tsx src/index.ts` + `curl http://127.0.0.1:3000/health`
+- Verification Output: `tsc` 无错误; 4 张表创建、insert/update/read 全部 OK; `{"status":"ok"}`
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `server/src/db/schema.ts`（4 张表 DDL）和 `server/src/db/client.ts`（单例连接 + WAL + mkdirSync）；`server/package.json` 新增 `better-sqlite3` 依赖；运行时生成 `server/data/hot-radar.db`
+- Existing Caller Impact: 当前 `server/src/index.ts` 未引用 db 模块，无已有调用方受影响；后续路由层按需 `import { getDb } from './db/client.js'`
+- Subagent Flow: explorer PASS; backend implementation PASS; reviewer PASS after fix (WAL 顺序 + mkdirSync); tester PASS
+
+### F0204 实现热点接口
+
+- Phase: Backend
+- Scope: `server/src/routes/hotItems.ts`
+- Verify: `curl http://127.0.0.1:3000/api/hot-items`
+- Depends On: F0203
+- Owner: backend
+- Channel: Light
+- Write Scope: `server/src/routes/hotItems.ts`
+- State: Done
+- Verification Command: `cd server && npm run build && npx tsx src/index.ts &` then `curl http://127.0.0.1:3000/api/hot-items`
+- Verification Output: `tsc` 无错误；`curl` 返回 `[]` HTTP 200
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `server/src/routes/hotItems.ts`，实现 GET /api/hot-items（支持 source/tag/minHeat 过滤）、GET /api/hot-items/:id、POST /api/hot-items；`server/src/index.ts` 注册该路由插件
+- Existing Caller Impact: 新增 API 端点，不影响已有路由、前端、数据库结构或部署流程；F0206 手动扫描可基于 POST /api/hot-items 写入热点
+- Subagent Flow: backend implementation PASS; tester PASS
+
+### F0205 实现监控词接口
+
+- Phase: Backend
+- Scope: `server/src/routes/keywords.ts`
+- Verify: `curl http://127.0.0.1:3000/api/keywords`
+- Depends On: F0203
+- Owner: backend
+- Channel: Light
+- Write Scope: `server/src/routes/keywords.ts`
+- State: Done
+- Verification Command: `cd server && npm run build && npx tsx src/index.ts &` then `curl http://127.0.0.1:3000/api/keywords`
+- Verification Output: `tsc` 无错误；`curl` 返回 `[]` HTTP 200
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `server/src/routes/keywords.ts`，实现 GET/POST/PATCH/:id/DELETE/:id 四个端点；`server/src/index.ts` 注册该路由插件
+- Existing Caller Impact: 新增 API 端点，不影响已有路由、前端、数据库结构或部署流程；F0207 前端接入可调用这些接口
+- Subagent Flow: backend implementation PASS; tester PASS
+
+### F0206 实现手动扫描接口
+
+- Phase: Backend
+- Scope: `server/src/routes/scans.ts`, `server/src/services/scanner.ts`
+- Verify: `curl -X POST http://127.0.0.1:3000/api/scans/run`
+- Depends On: F0204-F0205
+- Owner: backend
+- Channel: Light
+- Write Scope: `server/src/routes/scans.ts`, `server/src/services/scanner.ts`
+- State: Done
+- Verification Command: `cd server && npm run build && npx tsx src/index.ts &` then `curl -X POST http://127.0.0.1:3000/api/scans/run`
+- Verification Output: `tsc` 无错误；`curl` 返回 201 `{"status":"succeeded","discoveredCount":3,"matchedCount":0}`
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `server/src/routes/scans.ts`（POST /api/scans/run + GET /api/scans）和 `server/src/services/scanner.ts`（mock 扫描逻辑）；`server/src/index.ts` 注册 scansRoutes 插件；运行时生成 `server/data/hot-radar.db`（已 untrack）
+- Existing Caller Impact: 新增 API 端点，不影响已有路由（hotItems、keywords）、前端、数据库结构或部署流程；F0207 前端接入可调用 POST /api/scans/run 触发扫描；F0301 来源适配器可替换 mock 逻辑
+- Subagent Flow: backend implementation PASS; tester PASS
+
+### F0207 前端接入后端 API
+
+- Phase: Integration
+- Scope: `client/src/api/client.ts`, `client/src/App.tsx`
+- Verify: 前端页面展示后端数据
+- Depends On: F0109, F0206
+- Owner: frontend
+- Write Scope: `client/src/api/client.ts`, `client/src/App.tsx`, `client/vite.config.ts`, `client/src/components/MonitorKeywordsPanel.tsx`
+- Channel: Heavy
+- State: Done
+- Verification Command: `cd client && npx tsc --noEmit && npm run build` + `cd server && npm run build` + 后端启动 + vite proxy 代理验证 + Playwright 桌面/移动视口
+- Verification Output:
+
+```text
+前端 tsc: No errors found, build: 26 modules, 428ms
+后端 tsc: PASS
+health: {"status":"ok"}
+/api/hot-items, /api/keywords, /api/scans: [] (空数组)
+vite proxy /api/*: 代理转发正常
+Playwright: 页面加载触发 API 请求，无 console error，桌面/移动响应式正常
+```
+
+- Exit Code: 0
+- Verification Result: PASS
+- Side Effects: 前端不再使用 mock 热点/监控词/扫描数据，依赖后端服务运行；mockNotificationEvents 保留
+- Existing Caller Impact: MonitorKeywordsPanel.onAddKeyword 类型扩宽为 `boolean | Promise<boolean>`，向后兼容；其余组件 props 签名不变

@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 11
+Task Count: 6
 
 ## Rules
 
@@ -14,41 +14,6 @@ Task Count: 11
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0203 初始化 SQLite
-
-- Phase: Backend
-- Scope: `server/src/db/*`
-- Verify: 服务启动后检查数据表
-- Depends On: F0202
-
-### F0204 实现热点接口
-
-- Phase: Backend
-- Scope: `server/src/routes/hotItems.ts`
-- Verify: `rtk curl http://127.0.0.1:3000/api/hot-items`
-- Depends On: F0203
-
-### F0205 实现监控词接口
-
-- Phase: Backend
-- Scope: `server/src/routes/keywords.ts`
-- Verify: `rtk curl http://127.0.0.1:3000/api/keywords`
-- Depends On: F0203
-
-### F0206 实现手动扫描接口
-
-- Phase: Backend
-- Scope: `server/src/routes/scans.ts`, `server/src/services/scanner.ts`
-- Verify: `rtk curl -X POST http://127.0.0.1:3000/api/scans/run`
-- Depends On: F0204-F0205
-
-### F0207 前端接入后端 API
-
-- Phase: Integration
-- Scope: `client/src/api/client.ts`, `client/src/App.tsx`
-- Verify: 前端页面展示后端数据
-- Depends On: F0109, F0206
 
 ### F0301 实现来源适配器接口
 
