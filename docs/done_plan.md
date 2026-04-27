@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 10
+Task Count: 11
 
 ## Rules
 
@@ -274,4 +274,22 @@ Playwright: add/duplicate/empty/toggle PASS; `390x844` reported `hasHorizontalOv
 - Result: PASS
 - Side Effects: 新建 `server/` 目录，包含 `package.json`（fastify 5.4、typescript 6.0、tsx 4.19）、`tsconfig.json`、`src/index.ts`（Fastify server + /health 端点）；`node_modules/` 和 `dist/` 被 `.gitignore` 忽略
 - Existing Caller Impact: 新增后端工程骨架，不影响前端、API 契约、数据库结构或部署流程；F0202 可继续在 `server/src/domain/types.ts` 定义领域模型
+- Subagent Flow: backend implementation PASS; tester build PASS
+
+### F0202 定义后端领域模型
+
+- Phase: Backend
+- Scope: `server/src/domain/types.ts`
+- Verify: `cd server && npm run build`
+- Depends On: F0201
+- Owner: backend
+- Channel: Light
+- Write Scope: `server/src/domain/types.ts`
+- State: Done
+- Verification Command: `cd server && npm run build`
+- Verification Output: `> tsc`（无错误，编译成功）
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新建 `server/src/domain/types.ts`，定义 HotItem、MonitorKeyword、NotificationEvent、ScanStatus、ScanSummary 及对应 CreateXxxInput 类型
+- Existing Caller Impact: 无，当前 `server/src/index.ts` 未引用此文件，后续模块按需 import
 - Subagent Flow: backend implementation PASS; tester build PASS

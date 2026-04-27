@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 12
+Task Count: 11
 
 ## Rules
 
@@ -14,13 +14,6 @@ Task Count: 12
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0202 定义后端领域模型
-
-- Phase: Backend
-- Scope: `server/src/domain/types.ts`
-- Verify: `cd server && rtk npm run build`
-- Depends On: F0201
 
 ### F0203 初始化 SQLite
 
