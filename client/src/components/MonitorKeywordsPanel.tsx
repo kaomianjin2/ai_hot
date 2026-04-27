@@ -3,7 +3,7 @@ import type { MonitorKeyword } from "../types/domain";
 
 type MonitorKeywordsPanelProps = {
   keywords: MonitorKeyword[];
-  onAddKeyword: (keywordText: string) => boolean;
+  onAddKeyword: (keywordText: string) => boolean | Promise<boolean>;
   onToggleKeyword: (keywordId: string) => void;
   panelId: string;
   tabId: string;
@@ -20,7 +20,7 @@ export function MonitorKeywordsPanel({
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const activeKeywordCount = keywords.filter((keyword) => keyword.active).length;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const normalizedKeyword = draftKeyword.trim();
@@ -30,7 +30,7 @@ export function MonitorKeywordsPanel({
       return;
     }
 
-    if (!onAddKeyword(normalizedKeyword)) {
+    if (!(await onAddKeyword(normalizedKeyword))) {
       setFeedbackMessage("监控词已存在，请勿重复添加。");
       return;
     }

@@ -1,46 +1,39 @@
-import { useState } from "react";
+import { useEffect, useState } from 'react';
+import { mockNotificationEvents } from './data/mockData';
+import type { HotItem, MonitorKeyword, ScanSummary } from './types/domain';
+import { HotRadarControls, type HotRadarSort } from './components/HotRadarControls';
+import { Layout } from './components/Layout';
+import { ListContainer } from './components/ListContainer';
+import { MonitorKeywordsPanel } from './components/MonitorKeywordsPanel';
+import { SearchPage } from './components/SearchPage';
+import { Tabs } from './components/Tabs';
+import { Topbar } from './components/Topbar';
 import {
-  mockHotItems,
-  mockMonitorKeywords,
-  mockNotificationEvents,
-  mockScanSummaries,
-} from "./data/mockData";
-import type { HotItem, MonitorKeyword, ScanSummary } from "./types/domain";
-import { HotRadarControls, type HotRadarSort } from "./components/HotRadarControls";
-import { Layout } from "./components/Layout";
-import { ListContainer } from "./components/ListContainer";
-import { MonitorKeywordsPanel } from "./components/MonitorKeywordsPanel";
-import { SearchPage } from "./components/SearchPage";
-import { Tabs } from "./components/Tabs";
-import { Topbar } from "./components/Topbar";
-import "./components/components.css";
+  addKeyword,
+  fetchHotItems,
+  fetchKeywords,
+  fetchScans,
+  runScan,
+  updateKeyword,
+} from './api/client';
+import './components/components.css';
 
 const unreadNotificationCount = mockNotificationEvents.filter(
   (notificationEvent) => !notificationEvent.read
 ).length;
 
-const sourceOptions = Array.from(
-  new Set(mockHotItems.map((hotItem) => hotItem.source))
-).sort((leftSource, rightSource) => leftSource.localeCompare(rightSource));
-
-const tagOptions = Array.from(
-  new Set(mockHotItems.flatMap((hotItem) => hotItem.tags))
-).sort((leftTag, rightTag) => leftTag.localeCompare(rightTag));
-
 const minimumHeatOptions = [0, 20, 40, 60, 80];
 
 function matchesSearchText(hotItem: HotItem, normalizedSearchText: string) {
-  if (!normalizedSearchText) {
-    return true;
-  }
+  if (!normalizedSearchText) return true;
 
   const searchableText = [
     hotItem.title,
     hotItem.summary,
     hotItem.source,
-    hotItem.tags.join(" "),
+    hotItem.tags.join(' '),
   ]
-    .join(" ")
+    .join(' ')
     .toLowerCase();
 
   return searchableText.includes(normalizedSearchText);
@@ -49,19 +42,19 @@ function matchesSearchText(hotItem: HotItem, normalizedSearchText: string) {
 function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
   const sortedItems = [...hotItems];
 
-  if (sortBy === "heat-asc") {
+  if (sortBy === 'heat-asc') {
     sortedItems.sort((leftItem, rightItem) => leftItem.heatScore - rightItem.heatScore);
     return sortedItems;
   }
 
-  if (sortBy === "relevance-desc") {
+  if (sortBy === 'relevance-desc') {
     sortedItems.sort(
       (leftItem, rightItem) => rightItem.relevanceScore - leftItem.relevanceScore
     );
     return sortedItems;
   }
 
-  if (sortBy === "latest") {
+  if (sortBy === 'latest') {
     sortedItems.sort(
       (leftItem, rightItem) =>
         new Date(rightItem.publishedAt).getTime() -
@@ -74,47 +67,52 @@ function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
   return sortedItems;
 }
 
-function createMonitorKeywordId(keywordText: string, keywordCount: number) {
-  const normalizedKeyword = keywordText.trim().toLowerCase().replace(/\s+/g, "-");
-  const timestamp = Date.now().toString(36);
-
-  return `keyword-${normalizedKeyword}-${keywordCount + 1}-${timestamp}`;
-}
-
-function createMonitorKeyword(keywordText: string, keywordCount: number): MonitorKeyword {
-  return {
-    id: createMonitorKeywordId(keywordText, keywordCount),
-    text: keywordText,
-    active: true,
-    hitCount: 0,
-    createdAt: new Date().toISOString(),
-  };
-}
-
 export function App() {
-  const [activeTabId, setActiveTabId] = useState("hot");
-  const [monitorKeywords, setMonitorKeywords] = useState(mockMonitorKeywords);
-  const [searchText, setSearchText] = useState("");
+  const [activeTabId, setActiveTabId] = useState('hot');
+  const [hotItems, setHotItems] = useState<HotItem[]>([]);
+  const [monitorKeywords, setMonitorKeywords] = useState<MonitorKeyword[]>([]);
+  const [scanSummary, setScanSummary] = useState<ScanSummary | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState('');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minimumHeatScore, setMinimumHeatScore] = useState<number>(0);
-  const [sortBy, setSortBy] = useState<HotRadarSort>("heat-desc");
-  const [scanSummary, setScanSummary] = useState<ScanSummary>(mockScanSummaries[0]);
-  const isScanning = scanSummary.status === "running";
+  const [sortBy, setSortBy] = useState<HotRadarSort>('heat-desc');
+
+  useEffect(() => {
+    Promise.all([fetchHotItems(), fetchKeywords(), fetchScans()])
+      .then(([hotItemsData, keywordsData, scansData]) => {
+        setHotItems(hotItemsData);
+        setMonitorKeywords(keywordsData);
+        setScanSummary(scansData[0] ?? null);
+      })
+      .catch(() => setError('数据加载失败，请检查服务是否可用'))
+      .finally(() => setIsInitialLoading(false));
+  }, []);
+
   const activeKeywordCount = monitorKeywords.filter((keyword) => keyword.active).length;
+
+  const sourceOptions = Array.from(
+    new Set(hotItems.map((hotItem) => hotItem.source))
+  ).sort((leftSource, rightSource) => leftSource.localeCompare(rightSource));
+
+  const tagOptions = Array.from(
+    new Set(hotItems.flatMap((hotItem) => hotItem.tags))
+  ).sort((leftTag, rightTag) => leftTag.localeCompare(rightTag));
+
   const tabItems = [
-    { id: "hot", label: "热点", count: mockHotItems.length },
-    { id: "search", label: "搜索" },
-    { id: "keywords", label: "监控词", count: activeKeywordCount },
-    { id: "notifications", label: "通知", count: unreadNotificationCount },
+    { id: 'hot', label: '热点', count: hotItems.length },
+    { id: 'search', label: '搜索' },
+    { id: 'keywords', label: '监控词', count: activeKeywordCount },
+    { id: 'notifications', label: '通知', count: unreadNotificationCount },
   ];
 
   const normalizedSearchText = searchText.trim().toLowerCase();
   const filteredHotItems = sortHotItems(
-    mockHotItems.filter((hotItem) => {
-      if (!matchesSearchText(hotItem, normalizedSearchText)) {
-        return false;
-      }
+    hotItems.filter((hotItem) => {
+      if (!matchesSearchText(hotItem, normalizedSearchText)) return false;
 
       if (selectedSources.length > 0 && !selectedSources.includes(hotItem.source)) {
         return false;
@@ -131,13 +129,14 @@ export function App() {
     }),
     sortBy
   );
+
   const activeFilterCount =
     selectedSources.length +
     selectedTags.length +
     (minimumHeatScore > 0 ? 1 : 0) +
     (normalizedSearchText ? 1 : 0);
 
-  function handleAddKeyword(keywordText: string) {
+  async function handleAddKeyword(keywordText: string) {
     const normalizedKeyword = keywordText.trim().toLowerCase();
 
     if (
@@ -148,47 +147,51 @@ export function App() {
       return false;
     }
 
-    setMonitorKeywords((currentKeywords) => {
-      const nextKeyword = createMonitorKeyword(keywordText, currentKeywords.length);
-      return [nextKeyword, ...currentKeywords];
-    });
-    return true;
+    try {
+      const newKeyword = await addKeyword(keywordText);
+      setMonitorKeywords((currentKeywords) => [newKeyword, ...currentKeywords]);
+      return true;
+    } catch (addError) {
+      console.error('添加监控词失败', addError);
+      setError('添加监控词失败，请稍后重试');
+      return false;
+    }
   }
 
-  function handleToggleKeyword(keywordId: string) {
-    setMonitorKeywords((currentKeywords) =>
-      currentKeywords.map((monitorKeyword) =>
-        monitorKeyword.id === keywordId
-          ? { ...monitorKeyword, active: !monitorKeyword.active }
-          : monitorKeyword
-      )
-    );
+  async function handleToggleKeyword(keywordId: string) {
+    const target = monitorKeywords.find((k) => k.id === keywordId);
+    if (!target) return;
+
+    try {
+      const updated = await updateKeyword(keywordId, { active: !target.active });
+      setMonitorKeywords((currentKeywords) =>
+        currentKeywords.map((k) => (k.id === keywordId ? updated : k))
+      );
+    } catch (toggleError) {
+      console.error('切换监控词状态失败', toggleError);
+      setError('切换监控词状态失败，请稍后重试');
+    }
   }
 
-  function handleStartScan() {
+  async function handleStartScan() {
     if (isScanning) return;
 
-    const scanId = `scan-manual-${Date.now().toString(36)}`;
-    const startedAt = new Date().toISOString();
+    setIsScanning(true);
+    try {
+      const result = await runScan();
+      setScanSummary(result);
+      const refreshed = await fetchHotItems();
+      setHotItems(refreshed);
+    } catch (scanError) {
+      console.error('扫描失败', scanError);
+      setError('扫描失败，请稍后重试');
+    } finally {
+      setIsScanning(false);
+    }
+  }
 
-    setScanSummary({
-      id: scanId,
-      status: "running",
-      startedAt,
-      discoveredCount: 0,
-      matchedCount: 0,
-    });
-
-    setTimeout(() => {
-      setScanSummary({
-        id: scanId,
-        status: "succeeded",
-        startedAt,
-        completedAt: new Date().toISOString(),
-        discoveredCount: 8,
-        matchedCount: 3,
-      });
-    }, 1500);
+  if (isInitialLoading) {
+    return <p style={{ padding: '2rem', textAlign: 'center' }}>加载中…</p>;
   }
 
   return (
@@ -202,20 +205,23 @@ export function App() {
               onClick={handleStartScan}
               type="button"
             >
-              {isScanning ? "扫描中…" : "立即扫描"}
+              {isScanning ? '扫描中…' : '立即扫描'}
             </button>
           }
           brand="AI Hot Radar"
-          statusLabel={`${mockHotItems.length} 条热点 · ${unreadNotificationCount} 条未读`}
+          statusLabel={`${hotItems.length} 条热点 · ${unreadNotificationCount} 条未读`}
         />
       }
       tabs={<Tabs activeId={activeTabId} items={tabItems} onChange={setActiveTabId} />}
     >
-      {activeTabId === "hot" ? (
+      {error ? (
+        <p style={{ color: 'red', padding: '0.5rem 1rem', margin: 0 }}>{error}</p>
+      ) : null}
+      {activeTabId === 'hot' ? (
         <div aria-labelledby="tab-hot" id="panel-hot" role="tabpanel" tabIndex={0}>
           <ListContainer
             description="支持关键词搜索、来源与标签筛选、热度门槛和排序，用于快速聚焦当前最值得跟进的热点。"
-            meta={`${filteredHotItems.length} / ${mockHotItems.length} 条 · ${activeFilterCount} 个筛选条件`}
+            meta={`${filteredHotItems.length} / ${hotItems.length} 条 · ${activeFilterCount} 个筛选条件`}
             title="热点雷达"
           >
             <HotRadarControls
@@ -257,7 +263,7 @@ export function App() {
                           ))}
                         </div>
                         <span className="hot-list__published">
-                          发布时间 {new Date(hotItem.publishedAt).toLocaleDateString("zh-CN")}
+                          发布时间 {new Date(hotItem.publishedAt).toLocaleDateString('zh-CN')}
                         </span>
                       </div>
                     </div>
@@ -273,21 +279,21 @@ export function App() {
         </div>
       ) : null}
 
-      {activeTabId === "search" ? (
+      {activeTabId === 'search' ? (
         <ListContainer
           description="输入关键词搜索所有热点数据，快速定位感兴趣的内容。"
-          meta={`${mockHotItems.length} 条可搜索`}
+          meta={`${hotItems.length} 条可搜索`}
           title="搜索"
         >
           <SearchPage
-            hotItems={mockHotItems}
+            hotItems={hotItems}
             panelId="panel-search"
             tabId="tab-search"
           />
         </ListContainer>
       ) : null}
 
-      {activeTabId === "keywords" ? (
+      {activeTabId === 'keywords' ? (
         <ListContainer
           description="新增、启停和核对当前监控词，确保后续扫描任务围绕同一组主题持续运行。"
           meta={`${monitorKeywords.length} 个监控词 · ${activeKeywordCount} 个启用`}
@@ -303,7 +309,7 @@ export function App() {
         </ListContainer>
       ) : null}
 
-      {activeTabId === "notifications" ? (
+      {activeTabId === 'notifications' ? (
         <div
           aria-labelledby="tab-notifications"
           id="panel-notifications"
@@ -321,11 +327,15 @@ export function App() {
       ) : null}
 
       <ListContainer meta="只读摘要" title="最近扫描">
-        <p className="scan-summary">
-          状态：{scanSummary.status} · 发现：
-          {scanSummary.discoveredCount} · 命中：
-          {scanSummary.matchedCount}
-        </p>
+        {scanSummary ? (
+          <p className="scan-summary">
+            状态：{scanSummary.status} · 发现：
+            {scanSummary.discoveredCount} · 命中：
+            {scanSummary.matchedCount}
+          </p>
+        ) : (
+          <p className="scan-summary">暂无扫描记录</p>
+        )}
       </ListContainer>
     </Layout>
   );
