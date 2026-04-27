@@ -10,6 +10,7 @@ import { HotRadarControls, type HotRadarSort } from "./components/HotRadarContro
 import { Layout } from "./components/Layout";
 import { ListContainer } from "./components/ListContainer";
 import { MonitorKeywordsPanel } from "./components/MonitorKeywordsPanel";
+import { SearchPage } from "./components/SearchPage";
 import { Tabs } from "./components/Tabs";
 import { Topbar } from "./components/Topbar";
 import "./components/components.css";
@@ -102,6 +103,7 @@ export function App() {
   const activeKeywordCount = monitorKeywords.filter((keyword) => keyword.active).length;
   const tabItems = [
     { id: "hot", label: "热点", count: mockHotItems.length },
+    { id: "search", label: "搜索" },
     { id: "keywords", label: "监控词", count: activeKeywordCount },
     { id: "notifications", label: "通知", count: unreadNotificationCount },
   ];
@@ -233,6 +235,20 @@ export function App() {
             )}
           </ListContainer>
         </div>
+      ) : null}
+
+      {activeTabId === "search" ? (
+        <ListContainer
+          description="输入关键词搜索所有热点数据，快速定位感兴趣的内容。"
+          meta={`${mockHotItems.length} 条可搜索`}
+          title="搜索"
+        >
+          <SearchPage
+            hotItems={mockHotItems}
+            panelId="panel-search"
+            tabId="tab-search"
+          />
+        </ListContainer>
       ) : null}
 
       {activeTabId === "keywords" ? (
