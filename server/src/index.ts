@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { hotItemsRoutes } from './routes/hotItems.js';
+import { keywordsRoutes } from './routes/keywords.js';
 
 const app = Fastify({ logger: false });
 
@@ -8,6 +9,7 @@ app.get('/health', async () => {
 });
 
 app.register(hotItemsRoutes);
+app.register(keywordsRoutes);
 
 const start = async () => {
   try {
