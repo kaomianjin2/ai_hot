@@ -1,10 +1,13 @@
 import Fastify from 'fastify';
+import { hotItemsRoutes } from './routes/hotItems.js';
 
 const app = Fastify({ logger: false });
 
 app.get('/health', async () => {
   return { status: 'ok' };
 });
+
+app.register(hotItemsRoutes);
 
 const start = async () => {
   try {
