@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 17
+Task Count: 19
 
 ## Rules
 
@@ -410,3 +410,40 @@ Playwright: 页面加载触发 API 请求，无 console error，桌面/移动响
 - Side Effects: 新增 `server/src/sources/types.ts`，定义 `SourceAdapter` 接口（name + fetch）和 `SourceConfig` 类型（url + enabled）
 - Existing Caller Impact: 无。新增文件，当前无调用方；F0302/F0303 将 import 此接口
 - Subagent Flow: backend implementation PASS; tester build PASS
+
+### F0302 接入 RSS 来源
+
+- Phase: Sources
+- Scope: `server/src/sources/rss.ts`
+- Verify: 扫描后 RSS 热点入库
+- Depends On: F0301
+- Owner: backend
+- Channel: Heavy
+- Write Scope: `server/src/sources/rss.ts`, `server/src/services/scanner.ts`, `server/src/routes/scans.ts`
+- State: Done
+- Verification Command: `cd worktrees/F0302/server && npm install && npm run build && node dist/index.js`; `curl -s -X POST http://127.0.0.1:3000/api/scans/run`
+- Verification Output: `status: "succeeded", discoveredCount: 20`；hot-items 中 source 均为 `"rss"`
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `rss-parser` 依赖；`runScan()` 改为 async 接受 `SourceAdapter[]`；`scans.ts` 消除重复的 `ScanSummaryRow`/`rowToScanSummary`，从 scanner 导入复用
+- Existing Caller Impact: POST `/api/scans/run` 优先从 RSS feed 拉取，网络不通时降级到 mock，API 契约不变
+- Subagent Flow: explorer → backend impl → reviewer (FAIL→fix→PASS) → tester PASS
+
+### F0303 接入 GitHub 来源
+
+- Phase: Sources
+- Scope: `server/src/sources/github.ts`
+- Verify: 扫描后 GitHub 热点入库
+- Depends On: F0301
+- Owner: backend
+- Channel: Heavy
+- Write Scope: `server/src/sources/github.ts`, `server/src/routes/scans.ts`
+- State: Done
+- Verification Command: `cd worktrees/F0303/server && npm install && npm run build && node dist/index.js`; `curl -s -X POST http://127.0.0.1:3000/api/scans/run`
+- Verification Output: `status: "succeeded", discoveredCount: 40`；sources: 20 rss + 20 github
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `server/src/sources/github.ts`；scans.ts 同时注册 rss 和 github adapter
+- Existing Caller Impact: POST `/api/scans/run` 新增 GitHub 来源，discoveredCount 增加；API 契约不变
+- Subagent Flow: explorer → backend impl → reviewer (PASS with minor fix) → tester PASS
+- Note: tester 发现 GitHub description 中控制字符可能导致 JSON 解析异常（范围外，建议后续清洗）

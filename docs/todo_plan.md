@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 5
+Task Count: 3
 
 ## Rules
 
@@ -14,20 +14,6 @@ Task Count: 5
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0302 接入 RSS 来源
-
-- Phase: Sources
-- Scope: `server/src/sources/rss.ts`
-- Verify: 扫描后 RSS 热点入库
-- Depends On: F0301
-
-### F0303 接入 GitHub 来源
-
-- Phase: Sources
-- Scope: `server/src/sources/github.ts`
-- Verify: 扫描后 GitHub 热点入库
-- Depends On: F0301
 
 ### F0304 实现评分逻辑
 
