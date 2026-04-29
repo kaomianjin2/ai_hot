@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { getDb } from '../db/client.js';
 import type { ScanSummary, CreateHotItemInput } from '../domain/types.js';
 import type { SourceAdapter } from '../sources/types.js';
+import { scoreItems } from './scoring.js';
 
 type KeywordRow = {
   id: string;
@@ -96,6 +97,16 @@ export async function runScan(adapters: SourceAdapter[] = []): Promise<ScanSumma
       hotItems = MOCK_HOT_ITEMS;
     }
 
+    // 提前查询活跃关键词，供评分和命中检测复用
+    const activeKeywords = db.prepare(
+      'SELECT id, text FROM monitor_keywords WHERE active = 1'
+    ).all() as KeywordRow[];
+
+    // mock 数据保留原始分值，只对真实 adapter 采集数据评分
+    if (adapters.length > 0 && hotItems !== MOCK_HOT_ITEMS) {
+      hotItems = scoreItems(hotItems, activeKeywords.map(k => k.text));
+    }
+
     for (const item of hotItems) {
       const itemId = randomUUID();
       db.prepare(`
@@ -113,11 +124,6 @@ export async function runScan(adapters: SourceAdapter[] = []): Promise<ScanSumma
         item.publishedAt,
         now,
       );
-
-      // 检查活跃关键词是否命中该热点标题
-      const activeKeywords = db.prepare(
-        'SELECT id, text FROM monitor_keywords WHERE active = 1'
-      ).all() as KeywordRow[];
 
       for (const keyword of activeKeywords) {
         if (!item.title.includes(keyword.text)) continue;
