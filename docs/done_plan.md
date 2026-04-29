@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 19
+Task Count: 22
 
 ## Rules
 
@@ -447,3 +447,56 @@ Playwright: 页面加载触发 API 请求，无 console error，桌面/移动响
 - Existing Caller Impact: POST `/api/scans/run` 新增 GitHub 来源，discoveredCount 增加；API 契约不变
 - Subagent Flow: explorer → backend impl → reviewer (PASS with minor fix) → tester PASS
 - Note: tester 发现 GitHub description 中控制字符可能导致 JSON 解析异常（范围外，建议后续清洗）
+
+### F0304 实现评分逻辑
+
+- Phase: Sources
+- Scope: `server/src/services/scoring.ts`
+- Verify: 热点记录包含评分字段
+- Depends On: F0302-F0303
+- Owner: backend
+- Write Scope: `server/src/services/scoring.ts`, `server/src/services/scanner.ts`
+- Channel: Light
+- State: Done
+- Verification Command: `npx tsc --noEmit` + `curl -s -X POST http://127.0.0.1:3000/api/scans/run` + `curl -s http://127.0.0.1:3000/api/hot-items`
+- Verification Output: tsc 无错误；heatScore 值分布 30/31/39/55/60（时间衰减生效），relevanceScore=50（无监控词默认值）
+- Exit Code: 0
+- Result: PASS
+- Side Effects: activeKeywords 查询从循环内提到循环外（性能优化），mock 数据不参与评分
+- Existing Caller Impact: runScan 签名不变；热点分数从硬编码变为动态计算，排序结果会变化
+
+### F0305 实现通知事件
+
+- Phase: Notifications
+- Scope: `server/src/services/notifications.ts`, `server/src/routes/notifications.ts`
+- Verify: `curl http://127.0.0.1:3000/api/notifications`
+- Depends On: F0304
+- Owner: backend
+- Write Scope: `server/src/services/notifications.ts`, `server/src/routes/notifications.ts`, `server/src/index.ts`
+- Channel: Heavy
+- State: Done
+- Verification Command: `npx tsc --noEmit` + `curl -s http://127.0.0.1:3000/api/notifications` + PATCH 已读测试
+- Verification Output: tsc 无错误；GET 返回 20 条通知 JSON 数组；PATCH /:id/read 返回 {"ok":true}；重复 PATCH 返回 404；PATCH /read-all 返回 {"updated":19}
+- Exit Code: 0
+- Result: PASS
+- Side Effects: index.ts 新增 notificationsRoutes 注册
+- Existing Caller Impact: 无，新增端点不影响现有路由
+- Subagent Flow: explorer(主agent) → backend impl → reviewer PASS → tester PASS
+
+### F0306 前端通知中心
+
+- Phase: Notifications
+- Scope: `client/src/components/NotificationPanel.tsx`, `client/src/components/Topbar.tsx`
+- Verify: Playwright 通知列表检查
+- Depends On: F0207, F0305
+- Owner: frontend
+- Write Scope: `client/src/components/NotificationPanel.tsx`, `client/src/components/Topbar.tsx`, `client/src/api/client.ts`, `client/src/App.tsx`, `client/src/components/components.css`
+- Channel: Heavy
+- State: Done
+- Verification Command: `cd client && rtk npm run build`; `cd server && rtk npm run build`; server/client dev + Playwright 通知中心空态、非空态已读、全部已读、390x844 响应式检查
+- Verification Output: build 均通过；`AI` 监控词扫描返回 `matchedCount=20`，首条已读后未读数 `20 -> 19`，全部已读后未读数 `0`，`scrollWidth=390`
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 本地验证数据新增 `AI` 监控词并生成通知，测试中已将通知标记为已读；点击立即扫描后前端会额外刷新通知列表；浏览器控制台仍有范围外 `favicon.ico` 404 噪音。
+- Existing Caller Impact: `Topbar` 新增可选 `utilitySlot`，当前唯一调用方 `App` 已同步；新增 `NotificationPanel` 和通知 API client 封装，不改变后端接口、数据库结构或部署流程；通知请求失败不会阻断热点、搜索、监控词和扫描摘要主数据渲染。
+- Subagent Flow: explorer PASS; frontend implementation PASS after review fixes; reviewer code PASS; tester PASS for empty and non-empty notification flows.

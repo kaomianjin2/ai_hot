@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 3
+Task Count: 0
 
 ## Rules
 
@@ -15,23 +15,3 @@ Task Count: 3
 
 ## Plans
 
-### F0304 实现评分逻辑
-
-- Phase: Sources
-- Scope: `server/src/services/scoring.ts`
-- Verify: 热点记录包含评分字段
-- Depends On: F0302-F0303
-
-### F0305 实现通知事件
-
-- Phase: Notifications
-- Scope: `server/src/services/notifications.ts`, `server/src/routes/notifications.ts`
-- Verify: `rtk curl http://127.0.0.1:3000/api/notifications`
-- Depends On: F0304
-
-### F0306 前端通知中心
-
-- Phase: Notifications
-- Scope: `client/src/components/NotificationPanel.tsx`, `client/src/components/Topbar.tsx`
-- Verify: Playwright 通知列表检查
-- Depends On: F0207, F0305
