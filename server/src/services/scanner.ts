@@ -1,13 +1,14 @@
 import { randomUUID } from 'crypto';
 import { getDb } from '../db/client.js';
-import type { ScanSummary } from '../domain/types.js';
+import type { ScanSummary, CreateHotItemInput } from '../domain/types.js';
+import type { SourceAdapter } from '../sources/types.js';
 
 type KeywordRow = {
   id: string;
   text: string;
 };
 
-type ScanSummaryRow = {
+export type ScanSummaryRow = {
   id: string;
   status: string;
   started_at: string;
@@ -17,7 +18,7 @@ type ScanSummaryRow = {
   error_message: string | null;
 };
 
-const MOCK_HOT_ITEMS = [
+const MOCK_HOT_ITEMS: CreateHotItemInput[] = [
   {
     source: 'mock',
     title: 'ChatGPT 发布新版本，推理能力大幅提升',
@@ -26,6 +27,7 @@ const MOCK_HOT_ITEMS = [
     tags: ['AI', 'ChatGPT', 'OpenAI'],
     heatScore: 95,
     relevanceScore: 90,
+    publishedAt: '2024-01-01T00:00:00.000Z',
   },
   {
     source: 'mock',
@@ -35,6 +37,7 @@ const MOCK_HOT_ITEMS = [
     tags: ['AI', 'GitHub', '编程'],
     heatScore: 80,
     relevanceScore: 75,
+    publishedAt: '2024-01-01T00:00:00.000Z',
   },
   {
     source: 'mock',
@@ -44,10 +47,11 @@ const MOCK_HOT_ITEMS = [
     tags: ['AI', 'Google', 'Gemini'],
     heatScore: 88,
     relevanceScore: 82,
+    publishedAt: '2024-01-01T00:00:00.000Z',
   },
 ];
 
-function rowToScanSummary(row: ScanSummaryRow): ScanSummary {
+export function rowToScanSummary(row: ScanSummaryRow): ScanSummary {
   return {
     id: row.id,
     status: row.status as ScanSummary['status'],
@@ -59,7 +63,7 @@ function rowToScanSummary(row: ScanSummaryRow): ScanSummary {
   };
 }
 
-export function runScan(): ScanSummary {
+export async function runScan(adapters: SourceAdapter[] = []): Promise<ScanSummary> {
   const db = getDb();
   const scanId = randomUUID();
   const startedAt = new Date().toISOString();
@@ -72,7 +76,27 @@ export function runScan(): ScanSummary {
   try {
     const now = new Date().toISOString();
 
-    for (const item of MOCK_HOT_ITEMS) {
+    let hotItems: CreateHotItemInput[] = [];
+
+    if (adapters.length > 0) {
+      const results = await Promise.all(
+        adapters.map(async (adapter) => {
+          try {
+            return await adapter.fetch();
+          } catch (error) {
+            console.error(`[runScan] adapter "${adapter.name}" failed:`, error);
+            return [] as CreateHotItemInput[];
+          }
+        })
+      );
+      hotItems = results.flat();
+    }
+
+    if (hotItems.length === 0) {
+      hotItems = MOCK_HOT_ITEMS;
+    }
+
+    for (const item of hotItems) {
       const itemId = randomUUID();
       db.prepare(`
         INSERT INTO hot_items (id, source, title, summary, url, tags, heat_score, relevance_score, published_at, discovered_at)
@@ -86,7 +110,7 @@ export function runScan(): ScanSummary {
         JSON.stringify(item.tags),
         item.heatScore,
         item.relevanceScore,
-        now,
+        item.publishedAt,
         now,
       );
 
@@ -124,7 +148,7 @@ export function runScan(): ScanSummary {
       UPDATE scan_summaries
       SET status = 'succeeded', completed_at = ?, discovered_count = ?, matched_count = ?
       WHERE id = ?
-    `).run(completedAt, MOCK_HOT_ITEMS.length, matchedCount, scanId);
+    `).run(completedAt, hotItems.length, matchedCount, scanId);
 
     const row = db.prepare('SELECT * FROM scan_summaries WHERE id = ?').get(scanId) as ScanSummaryRow;
     return rowToScanSummary(row);
