@@ -45,7 +45,7 @@ export function createGithubAdapter(query: string = 'AI'): SourceAdapter {
       return (data.items ?? []).map((repo) => ({
         source: 'github' as const,
         title: repo.full_name,
-        summary: repo.description ?? '',
+        summary: (repo.description ?? '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, ''),
         url: repo.html_url,
         tags: repo.topics ?? [],
         heatScore: Math.min(100, Math.floor(repo.stargazers_count / 1000)),
