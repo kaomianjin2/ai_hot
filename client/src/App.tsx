@@ -7,7 +7,6 @@ import type {
 } from './types/domain';
 import { HotRadarControls, type HotRadarSort } from './components/HotRadarControls';
 import { Layout } from './components/Layout';
-import { ListContainer } from './components/ListContainer';
 import { MonitorKeywordsPanel } from './components/MonitorKeywordsPanel';
 import { NotificationPanel } from './components/NotificationPanel';
 import { SearchPage } from './components/SearchPage';
@@ -28,6 +27,54 @@ import './components/components.css';
 
 const minimumHeatOptions = [0, 20, 40, 60, 80];
 
+function isToday(dateText: string) {
+  const currentDate = new Date();
+  const targetDate = new Date(dateText);
+
+  return (
+    currentDate.getFullYear() === targetDate.getFullYear() &&
+    currentDate.getMonth() === targetDate.getMonth() &&
+    currentDate.getDate() === targetDate.getDate()
+  );
+}
+
+function formatDate(dateText: string) {
+  return new Date(dateText).toLocaleDateString('zh-CN');
+}
+
+function renderHotCard(hotItem: HotItem) {
+  return (
+    <article className={`hot-card${hotItem.heatScore >= 90 ? ' featured' : ''}`} key={hotItem.id}>
+      <div>
+        <div className="card-meta">
+          <span>{formatDate(hotItem.discoveredAt)} 发现</span>
+          <span className="source">{hotItem.source}</span>
+          <span>热度 {hotItem.heatScore}</span>
+          <span>相关度 {hotItem.relevanceScore}</span>
+        </div>
+        <h3>{hotItem.title}</h3>
+        <p className="summary">{hotItem.summary}</p>
+        <div aria-label="热点标签" className="badges">
+          {hotItem.tags.map((tag) => (
+            <span className="badge" key={tag}>
+              #{tag}
+            </span>
+          ))}
+          <span className="badge purple">发布时间 {formatDate(hotItem.publishedAt)}</span>
+        </div>
+      </div>
+      <a
+        className="view-button"
+        href={hotItem.url}
+        rel="noreferrer noopener"
+        target="_blank"
+      >
+        查看
+      </a>
+    </article>
+  );
+}
+
 function matchesSearchText(hotItem: HotItem, normalizedSearchText: string) {
   if (!normalizedSearchText) return true;
 
@@ -46,11 +93,6 @@ function matchesSearchText(hotItem: HotItem, normalizedSearchText: string) {
 function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
   const sortedItems = [...hotItems];
 
-  if (sortBy === 'heat-asc') {
-    sortedItems.sort((leftItem, rightItem) => leftItem.heatScore - rightItem.heatScore);
-    return sortedItems;
-  }
-
   if (sortBy === 'relevance-desc') {
     sortedItems.sort(
       (leftItem, rightItem) => rightItem.relevanceScore - leftItem.relevanceScore
@@ -58,7 +100,7 @@ function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
     return sortedItems;
   }
 
-  if (sortBy === 'latest') {
+  if (sortBy === 'published-desc') {
     sortedItems.sort(
       (leftItem, rightItem) =>
         new Date(rightItem.publishedAt).getTime() -
@@ -67,11 +109,38 @@ function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
     return sortedItems;
   }
 
-  sortedItems.sort((leftItem, rightItem) => rightItem.heatScore - leftItem.heatScore);
+  if (sortBy === 'discovered-desc') {
+    sortedItems.sort(
+      (leftItem, rightItem) =>
+        new Date(rightItem.discoveredAt).getTime() -
+        new Date(leftItem.discoveredAt).getTime()
+    );
+    return sortedItems;
+  }
+
+  if (sortBy === 'priority-desc') {
+    sortedItems.sort((leftItem, rightItem) => {
+      if (rightItem.heatScore !== leftItem.heatScore) {
+        return rightItem.heatScore - leftItem.heatScore;
+      }
+
+      return rightItem.relevanceScore - leftItem.relevanceScore;
+    });
+    return sortedItems;
+  }
+
+  sortedItems.sort((leftItem, rightItem) => {
+    const rightScore = rightItem.heatScore * 0.7 + rightItem.relevanceScore * 0.3;
+    const leftScore = leftItem.heatScore * 0.7 + leftItem.relevanceScore * 0.3;
+
+    return rightScore - leftScore;
+  });
   return sortedItems;
 }
 
 export function App() {
+  type AddKeywordResult = 'added' | 'duplicate' | 'failed';
+
   const [activeTabId, setActiveTabId] = useState('hot');
   const [hotItems, setHotItems] = useState<HotItem[]>([]);
   const [monitorKeywords, setMonitorKeywords] = useState<MonitorKeyword[]>([]);
@@ -82,6 +151,7 @@ export function App() {
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const [pendingNotificationIds, setPendingNotificationIds] = useState<string[]>([]);
   const [isMarkingAllNotifications, setIsMarkingAllNotifications] = useState(false);
+  const [initialLoadError, setInitialLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
@@ -90,40 +160,48 @@ export function App() {
   const [sortBy, setSortBy] = useState<HotRadarSort>('heat-desc');
   const isAnyNotificationPending = pendingNotificationIds.length > 0;
 
-  useEffect(() => {
-    Promise.allSettled([
+  async function loadInitialData() {
+    setIsInitialLoading(true);
+    setInitialLoadError(null);
+
+    const [hotItemsResult, keywordsResult, scansResult, notificationsResult] =
+      await Promise.allSettled([
       fetchHotItems(),
       fetchKeywords(),
       fetchScans(),
       fetchNotifications(),
-    ])
-      .then(([hotItemsResult, keywordsResult, scansResult, notificationsResult]) => {
-        if (hotItemsResult.status === 'fulfilled') {
-          setHotItems(hotItemsResult.value);
-        }
+      ]);
 
-        if (keywordsResult.status === 'fulfilled') {
-          setMonitorKeywords(keywordsResult.value);
-        }
+    if (hotItemsResult.status === 'fulfilled') {
+      setHotItems(hotItemsResult.value);
+    }
 
-        if (scansResult.status === 'fulfilled') {
-          setScanSummary(scansResult.value[0] ?? null);
-        }
+    if (keywordsResult.status === 'fulfilled') {
+      setMonitorKeywords(keywordsResult.value);
+    }
 
-        if (notificationsResult.status === 'fulfilled') {
-          setNotifications(notificationsResult.value);
-        }
+    if (scansResult.status === 'fulfilled') {
+      setScanSummary(scansResult.value[0] ?? null);
+    }
 
-        if (
-          hotItemsResult.status === 'rejected' ||
-          keywordsResult.status === 'rejected' ||
-          scansResult.status === 'rejected' ||
-          notificationsResult.status === 'rejected'
-        ) {
-          setError('数据加载失败，请检查服务是否可用');
-        }
-      })
-      .finally(() => setIsInitialLoading(false));
+    if (notificationsResult.status === 'fulfilled') {
+      setNotifications(notificationsResult.value);
+    }
+
+    if (
+      hotItemsResult.status === 'rejected' ||
+      keywordsResult.status === 'rejected' ||
+      scansResult.status === 'rejected' ||
+      notificationsResult.status === 'rejected'
+    ) {
+      setInitialLoadError('数据加载失败，请检查服务是否可用');
+    }
+
+    setIsInitialLoading(false);
+  }
+
+  useEffect(() => {
+    void loadInitialData();
   }, []);
 
   const activeKeywordCount = monitorKeywords.filter((keyword) => keyword.active).length;
@@ -138,9 +216,9 @@ export function App() {
   ).sort((leftTag, rightTag) => leftTag.localeCompare(rightTag));
 
   const tabItems = [
-    { id: 'hot', label: '热点', count: hotItems.length },
+    { id: 'hot', label: '热点雷达' },
+    { id: 'keywords', label: '监控词' },
     { id: 'search', label: '搜索' },
-    { id: 'keywords', label: '监控词', count: activeKeywordCount },
   ];
 
   const normalizedSearchText = searchText.trim().toLowerCase();
@@ -169,8 +247,17 @@ export function App() {
     selectedTags.length +
     (minimumHeatScore > 0 ? 1 : 0) +
     (normalizedSearchText ? 1 : 0);
+  const totalHotCount = hotItems.length;
+  const todayHotCount = hotItems.filter((hotItem) => isToday(hotItem.discoveredAt)).length;
+  const urgentHotCount = hotItems.filter((hotItem) => hotItem.heatScore >= 90).length;
+  const layoutStats = [
+    { id: 'total', icon: '⌁', label: '总热点', value: totalHotCount },
+    { id: 'today', icon: '◷', label: '今日新增', value: todayHotCount, tone: 'cyan' as const },
+    { id: 'urgent', icon: '⚠', label: '紧急热点', value: urgentHotCount, tone: 'danger' as const },
+    { id: 'keywords', icon: '◎', label: '启用监控词', value: activeKeywordCount, tone: 'green' as const },
+  ];
 
-  async function handleAddKeyword(keywordText: string) {
+  async function handleAddKeyword(keywordText: string): Promise<AddKeywordResult> {
     const normalizedKeyword = keywordText.trim().toLowerCase();
 
     if (
@@ -178,17 +265,17 @@ export function App() {
         (monitorKeyword) => monitorKeyword.text.trim().toLowerCase() === normalizedKeyword
       )
     ) {
-      return false;
+      return 'duplicate';
     }
 
     try {
       const newKeyword = await addKeyword(keywordText);
       setMonitorKeywords((currentKeywords) => [newKeyword, ...currentKeywords]);
-      return true;
+      return 'added';
     } catch (addError) {
       console.error('添加监控词失败', addError);
       setError('添加监控词失败，请稍后重试');
-      return false;
+      return 'failed';
     }
   }
 
@@ -298,46 +385,38 @@ export function App() {
   }
 
   if (isInitialLoading) {
-    return <p style={{ padding: '2rem', textAlign: 'center' }}>加载中…</p>;
+    return <div className="loading-state">加载中…</div>;
   }
 
   return (
     <Layout
+      stats={layoutStats}
       topbar={
         <Topbar
-          utilitySlot={
-            <button
-              aria-controls="notification-panel"
-              aria-expanded={isNotificationPanelOpen}
-              aria-label={`通知中心，当前 ${unreadNotificationCount} 条未读`}
-              className="topbar__button"
-              onClick={handleToggleNotificationPanel}
-              type="button"
-            >
-              通知
-              <span className="topbar__button-count">{unreadNotificationCount}</span>
-            </button>
-          }
-          actionSlot={
-            <button
-              aria-label="立即扫描"
-              className="topbar__button"
-              disabled={isScanning}
-              onClick={handleStartScan}
-              type="button"
-            >
-              {isScanning ? '扫描中…' : '立即扫描'}
-            </button>
-          }
           brand="AI Hot Radar"
-          statusLabel={`${hotItems.length} 条热点`}
+          isNotificationPanelOpen={isNotificationPanelOpen}
+          isScanning={isScanning}
+          subtitle="AI 热点雷达"
+          unreadCount={unreadNotificationCount}
+          onStartScan={handleStartScan}
+          onToggleNotifications={handleToggleNotificationPanel}
         />
       }
       tabs={<Tabs activeId={activeTabId} items={tabItems} onChange={setActiveTabId} />}
     >
-      {error ? (
-        <p style={{ color: 'red', padding: '0.5rem 1rem', margin: 0 }}>{error}</p>
+      {initialLoadError ? (
+        <div className="error-banner" role="alert">
+          <span>{initialLoadError}</span>
+          <button
+            className="notification-panel__action"
+            type="button"
+            onClick={() => void loadInitialData()}
+          >
+            重试
+          </button>
+        </div>
       ) : null}
+      {error ? <p className="error-banner">{error}</p> : null}
       {isNotificationPanelOpen ? (
         <NotificationPanel
           isMarkAllPending={isMarkingAllNotifications}
@@ -349,12 +428,33 @@ export function App() {
         />
       ) : null}
       {activeTabId === 'hot' ? (
-        <div aria-labelledby="tab-hot" id="panel-hot" role="tabpanel" tabIndex={0}>
-          <ListContainer
-            description="支持关键词搜索、来源与标签筛选、热度门槛和排序，用于快速聚焦当前最值得跟进的热点。"
-            meta={`${filteredHotItems.length} / ${hotItems.length} 条 · ${activeFilterCount} 个筛选条件`}
-            title="热点雷达"
-          >
+        <section
+          aria-labelledby="tab-hot"
+          className="view-section active"
+          id="panel-hot"
+          role="tabpanel"
+          tabIndex={0}
+        >
+          <div className="section-title-row">
+            <h2 className="section-title">🔥 实时热点流</h2>
+            <div className="refresh-note">
+              {filteredHotItems.length} / {hotItems.length} 条 · {activeFilterCount} 个筛选条件
+            </div>
+          </div>
+
+          <div className="scan-summary">
+            {scanSummary ? (
+              <>
+                <span>状态：{scanSummary.status}</span>
+                <span>发现：{scanSummary.discoveredCount}</span>
+                <span>命中：{scanSummary.matchedCount}</span>
+              </>
+            ) : (
+              <span>暂无扫描记录</span>
+            )}
+          </div>
+
+          <div className="panel-block">
             <HotRadarControls
               minimumHeatOptions={minimumHeatOptions}
               minimumHeatScore={minimumHeatScore}
@@ -372,85 +472,31 @@ export function App() {
             />
 
             {filteredHotItems.length > 0 ? (
-              <ul className="hot-list" aria-label="热点结果列表">
-                {filteredHotItems.map((hotItem) => (
-                  <li className="hot-list__item" key={hotItem.id}>
-                    <span className="hot-list__score">{hotItem.heatScore}</span>
-                    <div className="hot-list__content">
-                      <div className="hot-list__meta">
-                        <p className="hot-list__source">{hotItem.source}</p>
-                        <span className="hot-list__relevance">
-                          相关度 {hotItem.relevanceScore}
-                        </span>
-                      </div>
-                      <h3 className="hot-list__title">{hotItem.title}</h3>
-                      <p className="hot-list__summary">{hotItem.summary}</p>
-                      <div className="hot-list__footer">
-                        <div className="hot-list__tags" aria-label="热点标签">
-                          {hotItem.tags.map((tag) => (
-                            <span className="hot-list__tag" key={tag}>
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                        <span className="hot-list__published">
-                          发布时间 {new Date(hotItem.publishedAt).toLocaleDateString('zh-CN')}
-                        </span>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <div className="hot-list" aria-label="热点结果列表">
+                {filteredHotItems.map(renderHotCard)}
+              </div>
             ) : (
-              <p className="empty-state">
+              <p className="empty-state visible">
                 未找到符合当前搜索与筛选条件的热点，请调整关键词、标签、来源或热度门槛。
               </p>
             )}
-          </ListContainer>
-        </div>
+          </div>
+        </section>
       ) : null}
 
       {activeTabId === 'search' ? (
-        <ListContainer
-          description="输入关键词搜索所有热点数据，快速定位感兴趣的内容。"
-          meta={`${hotItems.length} 条可搜索`}
-          title="搜索"
-        >
-          <SearchPage
-            hotItems={hotItems}
-            panelId="panel-search"
-            tabId="tab-search"
-          />
-        </ListContainer>
+        <SearchPage hotItems={hotItems} panelId="panel-search" tabId="tab-search" />
       ) : null}
 
       {activeTabId === 'keywords' ? (
-        <ListContainer
-          description="新增、启停和核对当前监控词，确保后续扫描任务围绕同一组主题持续运行。"
-          meta={`${monitorKeywords.length} 个监控词 · ${activeKeywordCount} 个启用`}
-          title="监控词"
-        >
-          <MonitorKeywordsPanel
-            keywords={monitorKeywords}
-            onAddKeyword={handleAddKeyword}
-            onToggleKeyword={handleToggleKeyword}
-            panelId="panel-keywords"
-            tabId="tab-keywords"
-          />
-        </ListContainer>
+        <MonitorKeywordsPanel
+          keywords={monitorKeywords}
+          onAddKeyword={handleAddKeyword}
+          onToggleKeyword={handleToggleKeyword}
+          panelId="panel-keywords"
+          tabId="tab-keywords"
+        />
       ) : null}
-
-      <ListContainer meta="只读摘要" title="最近扫描">
-        {scanSummary ? (
-          <p className="scan-summary">
-            状态：{scanSummary.status} · 发现：
-            {scanSummary.discoveredCount} · 命中：
-            {scanSummary.matchedCount}
-          </p>
-        ) : (
-          <p className="scan-summary">暂无扫描记录</p>
-        )}
-      </ListContainer>
     </Layout>
   );
 }

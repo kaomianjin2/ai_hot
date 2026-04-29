@@ -1,28 +1,56 @@
-import type { ReactNode } from "react";
-
 type TopbarProps = {
   brand: string;
-  statusLabel: string;
-  utilitySlot?: ReactNode;
-  actionSlot?: ReactNode;
+  subtitle: string;
+  unreadCount: number;
+  isNotificationPanelOpen: boolean;
+  isScanning: boolean;
+  onToggleNotifications: () => void;
+  onStartScan: () => void;
 };
 
-export function Topbar({ brand, statusLabel, utilitySlot, actionSlot }: TopbarProps) {
+export function Topbar({
+  brand,
+  subtitle,
+  unreadCount,
+  isNotificationPanelOpen,
+  isScanning,
+  onToggleNotifications,
+  onStartScan,
+}: TopbarProps) {
+  const bellBadgeText = unreadCount > 9 ? '9+' : unreadCount.toString();
+
   return (
-    <header className="topbar" aria-label="应用顶部栏">
-      <div className="topbar__brand">
-        <span className="topbar__mark" aria-hidden="true">
-          AI
-        </span>
+    <header className="topbar" aria-label="顶部导航">
+      <div className="brand">
+        <div aria-hidden="true" className="brand-icon">
+          ⌁
+        </div>
         <div>
-          <p className="topbar__eyebrow">Hot Radar</p>
-          <h1 className="topbar__title">{brand}</h1>
+          <h1>{brand}</h1>
+          <p>{subtitle}</p>
         </div>
       </div>
-      <div className="topbar__side">
-        <span className="topbar__status">{statusLabel}</span>
-        {utilitySlot ? <div className="topbar__utility">{utilitySlot}</div> : null}
-        {actionSlot ? <div className="topbar__actions">{actionSlot}</div> : null}
+      <div className="top-actions">
+        <button
+          aria-label="立即扫描"
+          className="scan-button"
+          disabled={isScanning}
+          type="button"
+          onClick={onStartScan}
+        >
+          ↻ {isScanning ? '扫描中…' : '立即扫描'}
+        </button>
+        <button
+          aria-controls="notification-panel"
+          aria-expanded={isNotificationPanelOpen}
+          aria-label={`通知中心，当前 ${unreadCount} 条未读`}
+          className="bell-button"
+          type="button"
+          onClick={onToggleNotifications}
+        >
+          <span aria-hidden="true">⌁</span>
+          {unreadCount > 0 ? <span className="bell-badge">{bellBadgeText}</span> : null}
+        </button>
       </div>
     </header>
   );

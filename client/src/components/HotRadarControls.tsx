@@ -15,10 +15,19 @@ type HotRadarControlsProps = {
 };
 
 export type HotRadarSort =
-  | "heat-desc"
-  | "heat-asc"
-  | "relevance-desc"
-  | "latest";
+  | 'discovered-desc'
+  | 'published-desc'
+  | 'priority-desc'
+  | 'relevance-desc'
+  | 'heat-desc';
+
+const sortOptions: Array<{ label: string; value: HotRadarSort }> = [
+  { label: '最新发现', value: 'discovered-desc' },
+  { label: '最新发布', value: 'published-desc' },
+  { label: '重要程度', value: 'priority-desc' },
+  { label: '相关性', value: 'relevance-desc' },
+  { label: '热度综合', value: 'heat-desc' },
+];
 
 function toggleOption(currentValues: string[], nextValue: string) {
   if (currentValues.includes(nextValue)) {
@@ -43,66 +52,64 @@ export function HotRadarControls({
   onMinimumHeatScoreChange,
   onSortByChange,
 }: HotRadarControlsProps) {
+  const activeFilterCount =
+    selectedSources.length +
+    selectedTags.length +
+    (minimumHeatScore > 0 ? 1 : 0) +
+    (searchText.trim() ? 1 : 0);
+
   return (
-    <section className="hot-controls" aria-label="热点筛选控件">
-      <div className="hot-controls__header">
-        <label className="hot-controls__search" htmlFor="hot-search">
-          <span className="hot-controls__label">热点搜索</span>
-          <input
-            className="hot-controls__input"
-            id="hot-search"
-            name="hot-search"
-            placeholder="按标题、摘要、标签、来源搜索"
-            type="search"
-            value={searchText}
-            onChange={(event) => onSearchTextChange(event.target.value)}
-          />
-        </label>
+    <>
+      <section aria-label="排序与筛选" className="toolbar">
+        <div className="sort-group">
+          {sortOptions.map((sortOption) => (
+            <button
+              className={`chip${sortBy === sortOption.value ? ' active' : ''}`}
+              key={sortOption.value}
+              type="button"
+              onClick={() => onSortByChange(sortOption.value)}
+            >
+              {sortOption.label}
+            </button>
+          ))}
+        </div>
+        <div className="filter-group">
+          <div className="filter-button active">
+            <span>筛选</span>
+            <span className="filter-dot">{activeFilterCount}</span>
+          </div>
+        </div>
+      </section>
 
-        <label className="hot-controls__select-field" htmlFor="hot-sort">
-          <span className="hot-controls__label">排序</span>
-          <select
-            className="hot-controls__select"
-            id="hot-sort"
-            name="hot-sort"
-            value={sortBy}
-            onChange={(event) => onSortByChange(event.target.value as HotRadarSort)}
-          >
-            <option value="heat-desc">热度从高到低</option>
-            <option value="heat-asc">热度从低到高</option>
-            <option value="relevance-desc">相关度优先</option>
-            <option value="latest">最新发布时间</option>
-          </select>
-        </label>
+      <section aria-label="热点筛选条件" className="filter-panel">
+        <div className="filter-field">
+          <span className="field-label">最低热度</span>
+          <label className="select-shell" htmlFor="hot-heat">
+            <select
+              className="control-select"
+              id="hot-heat"
+              name="hot-heat"
+              value={minimumHeatScore}
+              onChange={(event) => onMinimumHeatScoreChange(Number(event.target.value))}
+            >
+              {minimumHeatOptions.map((heatOption) => (
+                <option key={heatOption} value={heatOption}>
+                  {heatOption === 0 ? '全部热度' : `${heatOption} 分以上`}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
-        <label className="hot-controls__select-field" htmlFor="hot-heat">
-          <span className="hot-controls__label">最低热度</span>
-          <select
-            className="hot-controls__select"
-            id="hot-heat"
-            name="hot-heat"
-            value={minimumHeatScore}
-            onChange={(event) => onMinimumHeatScoreChange(Number(event.target.value))}
-          >
-            {minimumHeatOptions.map((heatOption) => (
-              <option key={heatOption} value={heatOption}>
-                {heatOption === 0 ? "全部热度" : `${heatOption} 分以上`}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="hot-controls__filters">
-        <div className="hot-controls__group" aria-label="来源筛选">
-          <span className="hot-controls__label">来源</span>
-          <div className="hot-controls__chips">
+        <div className="filter-field" aria-label="来源筛选">
+          <span className="field-label">来源</span>
+          <div className="filter-row">
             {sourceOptions.map((sourceOption) => {
               const isSelected = selectedSources.includes(sourceOption);
 
               return (
                 <button
-                  className="hot-controls__chip"
+                  className={`filter-chip${isSelected ? ' active' : ''}`}
                   data-active={isSelected}
                   key={sourceOption}
                   type="button"
@@ -117,15 +124,15 @@ export function HotRadarControls({
           </div>
         </div>
 
-        <div className="hot-controls__group" aria-label="标签筛选">
-          <span className="hot-controls__label">标签</span>
-          <div className="hot-controls__chips">
+        <div className="filter-field" aria-label="标签筛选">
+          <span className="field-label">标签</span>
+          <div className="filter-row">
             {tagOptions.map((tagOption) => {
               const isSelected = selectedTags.includes(tagOption);
 
               return (
                 <button
-                  className="hot-controls__chip"
+                  className={`filter-chip${isSelected ? ' active' : ''}`}
                   data-active={isSelected}
                   key={tagOption}
                   type="button"
@@ -137,7 +144,25 @@ export function HotRadarControls({
             })}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section className="search-panel">
+        <div className="search-row">
+          <input
+            aria-label="热点搜索"
+            className="search-input"
+            id="hot-search"
+            name="hot-search"
+            placeholder="按标题、摘要、标签、来源搜索"
+            type="search"
+            value={searchText}
+            onChange={(event) => onSearchTextChange(event.target.value)}
+          />
+          <div className="search-button search-button--static" aria-hidden="true">
+            实时过滤
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
