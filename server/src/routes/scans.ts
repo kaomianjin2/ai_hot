@@ -2,11 +2,13 @@ import type { FastifyPluginAsync } from 'fastify';
 import { getDb } from '../db/client.js';
 import { runScan, rowToScanSummary, type ScanSummaryRow } from '../services/scanner.js';
 import { createRssAdapter } from '../sources/rss.js';
+import { createGithubAdapter } from '../sources/github.js';
 
 export const scansRoutes: FastifyPluginAsync = async (app) => {
   app.post('/api/scans/run', async (_request, reply) => {
     const rssAdapter = createRssAdapter();
-    const summary = await runScan([rssAdapter]);
+    const githubAdapter = createGithubAdapter();
+    const summary = await runScan([rssAdapter, githubAdapter]);
     return reply.status(201).send(summary);
   });
 
