@@ -1,4 +1,9 @@
-import type { HotItem, MonitorKeyword, ScanSummary } from '../types/domain';
+import type {
+  HotItem,
+  MonitorKeyword,
+  NotificationEvent,
+  ScanSummary,
+} from '../types/domain';
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, options);
@@ -62,4 +67,24 @@ export function runScan(): Promise<ScanSummary> {
 
 export function fetchScans(): Promise<ScanSummary[]> {
   return apiFetch<ScanSummary[]>('/api/scans');
+}
+
+export function fetchNotifications(params?: {
+  unreadOnly?: boolean;
+}): Promise<NotificationEvent[]> {
+  if (!params?.unreadOnly) return apiFetch<NotificationEvent[]>('/api/notifications');
+
+  return apiFetch<NotificationEvent[]>('/api/notifications?unreadOnly=true');
+}
+
+export function markNotificationRead(id: string): Promise<{ ok: true }> {
+  return apiFetch<{ ok: true }>(`/api/notifications/${id}/read`, {
+    method: 'PATCH',
+  });
+}
+
+export function markAllNotificationsRead(): Promise<{ updated: number }> {
+  return apiFetch<{ updated: number }>('/api/notifications/read-all', {
+    method: 'PATCH',
+  });
 }

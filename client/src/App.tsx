@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
-import type { HotItem, MonitorKeyword, ScanSummary } from './types/domain';
+import type {
+  HotItem,
+  MonitorKeyword,
+  NotificationEvent,
+  ScanSummary,
+} from './types/domain';
 import { HotRadarControls, type HotRadarSort } from './components/HotRadarControls';
 import { Layout } from './components/Layout';
 import { ListContainer } from './components/ListContainer';
 import { MonitorKeywordsPanel } from './components/MonitorKeywordsPanel';
+import { NotificationPanel } from './components/NotificationPanel';
 import { SearchPage } from './components/SearchPage';
 import { Tabs } from './components/Tabs';
 import { Topbar } from './components/Topbar';
@@ -11,7 +17,10 @@ import {
   addKeyword,
   fetchHotItems,
   fetchKeywords,
+  fetchNotifications,
   fetchScans,
+  markAllNotificationsRead,
+  markNotificationRead,
   runScan,
   updateKeyword,
 } from './api/client';
@@ -66,28 +75,59 @@ export function App() {
   const [activeTabId, setActiveTabId] = useState('hot');
   const [hotItems, setHotItems] = useState<HotItem[]>([]);
   const [monitorKeywords, setMonitorKeywords] = useState<MonitorKeyword[]>([]);
+  const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
   const [scanSummary, setScanSummary] = useState<ScanSummary | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const [pendingNotificationIds, setPendingNotificationIds] = useState<string[]>([]);
+  const [isMarkingAllNotifications, setIsMarkingAllNotifications] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minimumHeatScore, setMinimumHeatScore] = useState<number>(0);
   const [sortBy, setSortBy] = useState<HotRadarSort>('heat-desc');
+  const isAnyNotificationPending = pendingNotificationIds.length > 0;
 
   useEffect(() => {
-    Promise.all([fetchHotItems(), fetchKeywords(), fetchScans()])
-      .then(([hotItemsData, keywordsData, scansData]) => {
-        setHotItems(hotItemsData);
-        setMonitorKeywords(keywordsData);
-        setScanSummary(scansData[0] ?? null);
+    Promise.allSettled([
+      fetchHotItems(),
+      fetchKeywords(),
+      fetchScans(),
+      fetchNotifications(),
+    ])
+      .then(([hotItemsResult, keywordsResult, scansResult, notificationsResult]) => {
+        if (hotItemsResult.status === 'fulfilled') {
+          setHotItems(hotItemsResult.value);
+        }
+
+        if (keywordsResult.status === 'fulfilled') {
+          setMonitorKeywords(keywordsResult.value);
+        }
+
+        if (scansResult.status === 'fulfilled') {
+          setScanSummary(scansResult.value[0] ?? null);
+        }
+
+        if (notificationsResult.status === 'fulfilled') {
+          setNotifications(notificationsResult.value);
+        }
+
+        if (
+          hotItemsResult.status === 'rejected' ||
+          keywordsResult.status === 'rejected' ||
+          scansResult.status === 'rejected' ||
+          notificationsResult.status === 'rejected'
+        ) {
+          setError('数据加载失败，请检查服务是否可用');
+        }
       })
-      .catch(() => setError('数据加载失败，请检查服务是否可用'))
       .finally(() => setIsInitialLoading(false));
   }, []);
 
   const activeKeywordCount = monitorKeywords.filter((keyword) => keyword.active).length;
+  const unreadNotificationCount = notifications.filter((notification) => !notification.read).length;
 
   const sourceOptions = Array.from(
     new Set(hotItems.map((hotItem) => hotItem.source))
@@ -174,13 +214,86 @@ export function App() {
     try {
       const result = await runScan();
       setScanSummary(result);
-      const refreshed = await fetchHotItems();
-      setHotItems(refreshed);
+      const [refreshedHotItemsResult, refreshedNotificationsResult] = await Promise.allSettled([
+        fetchHotItems(),
+        fetchNotifications(),
+      ]);
+
+      if (refreshedHotItemsResult.status === 'fulfilled') {
+        setHotItems(refreshedHotItemsResult.value);
+      }
+
+      if (refreshedNotificationsResult.status === 'fulfilled') {
+        setNotifications(refreshedNotificationsResult.value);
+      }
+
+      if (
+        refreshedHotItemsResult.status === 'rejected' ||
+        refreshedNotificationsResult.status === 'rejected'
+      ) {
+        setError('数据加载失败，请检查服务是否可用');
+      }
     } catch (scanError) {
       console.error('扫描失败', scanError);
       setError('扫描失败，请稍后重试');
     } finally {
       setIsScanning(false);
+    }
+  }
+
+  function handleToggleNotificationPanel() {
+    setIsNotificationPanelOpen((currentOpen) => !currentOpen);
+  }
+
+  async function handleMarkNotificationRead(notificationId: string) {
+    const targetNotification = notifications.find(
+      (notification) => notification.id === notificationId
+    );
+    if (
+      !targetNotification ||
+      targetNotification.read ||
+      pendingNotificationIds.includes(notificationId) ||
+      isMarkingAllNotifications
+    ) {
+      return;
+    }
+
+    setPendingNotificationIds((currentPendingIds) => [...currentPendingIds, notificationId]);
+    try {
+      await markNotificationRead(notificationId);
+      setNotifications((currentNotifications) =>
+        currentNotifications.map((notification) =>
+          notification.id === notificationId ? { ...notification, read: true } : notification
+        )
+      );
+    } catch (notificationError) {
+      console.error('通知标记已读失败', notificationError);
+      setError('通知更新失败，请稍后重试');
+    } finally {
+      setPendingNotificationIds((currentPendingIds) =>
+        currentPendingIds.filter((pendingId) => pendingId !== notificationId)
+      );
+    }
+  }
+
+  async function handleMarkAllNotificationsRead() {
+    if (unreadNotificationCount === 0 || isMarkingAllNotifications || isAnyNotificationPending) {
+      return;
+    }
+
+    setIsMarkingAllNotifications(true);
+    try {
+      await markAllNotificationsRead();
+      setNotifications((currentNotifications) =>
+        currentNotifications.map((notification) =>
+          notification.read ? notification : { ...notification, read: true }
+        )
+      );
+    } catch (notificationError) {
+      console.error('全部通知标记已读失败', notificationError);
+      setError('通知更新失败，请稍后重试');
+    } finally {
+      setIsMarkingAllNotifications(false);
     }
   }
 
@@ -192,9 +305,23 @@ export function App() {
     <Layout
       topbar={
         <Topbar
+          utilitySlot={
+            <button
+              aria-controls="notification-panel"
+              aria-expanded={isNotificationPanelOpen}
+              aria-label={`通知中心，当前 ${unreadNotificationCount} 条未读`}
+              className="topbar__button"
+              onClick={handleToggleNotificationPanel}
+              type="button"
+            >
+              通知
+              <span className="topbar__button-count">{unreadNotificationCount}</span>
+            </button>
+          }
           actionSlot={
             <button
               aria-label="立即扫描"
+              className="topbar__button"
               disabled={isScanning}
               onClick={handleStartScan}
               type="button"
@@ -210,6 +337,16 @@ export function App() {
     >
       {error ? (
         <p style={{ color: 'red', padding: '0.5rem 1rem', margin: 0 }}>{error}</p>
+      ) : null}
+      {isNotificationPanelOpen ? (
+        <NotificationPanel
+          isMarkAllPending={isMarkingAllNotifications}
+          pendingNotificationIds={pendingNotificationIds}
+          notifications={notifications}
+          unreadCount={unreadNotificationCount}
+          onMarkAllRead={handleMarkAllNotificationsRead}
+          onMarkRead={handleMarkNotificationRead}
+        />
       ) : null}
       {activeTabId === 'hot' ? (
         <div aria-labelledby="tab-hot" id="panel-hot" role="tabpanel" tabIndex={0}>

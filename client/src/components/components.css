@@ -84,6 +84,7 @@
 }
 
 .topbar__status,
+.topbar__utility,
 .topbar__actions,
 .tabs__item,
 .keyword-strip__item {
@@ -92,9 +93,56 @@
 }
 
 .topbar__status,
+.topbar__utility,
 .topbar__actions {
   padding: 9px 12px;
   font-size: 13px;
+}
+
+.topbar__utility,
+.topbar__actions {
+  display: flex;
+  align-items: center;
+}
+
+.topbar__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #161616;
+  background: #fffaf0;
+  color: #161616;
+  font: inherit;
+  cursor: pointer;
+}
+
+.topbar__button:disabled,
+.notification-panel__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.topbar__button-count,
+.notification-list__time,
+.notification-list__status,
+.notification-list__reason,
+.notification-panel__header-meta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.topbar__button-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 6px;
+  border: 1px solid #161616;
+  background: #f0c94f;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .radar-layout__tabs {
@@ -347,6 +395,98 @@
   gap: 16px;
 }
 
+.notification-panel__header-meta,
+.notification-list__item,
+.notification-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.notification-panel__header-meta {
+  align-items: center;
+  justify-content: flex-end;
+  color: #8f2f24;
+  font-size: 13px;
+}
+
+.notification-panel__action {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #161616;
+  background: #fffaf0;
+  color: #161616;
+  font: inherit;
+  cursor: pointer;
+}
+
+.notification-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notification-list__item {
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.notification-list__item + .notification-list__item {
+  border-top: 1px solid rgba(22, 22, 22, 0.24);
+}
+
+.notification-list__content {
+  display: grid;
+  flex: 1 1 320px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.notification-list__meta {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notification-list__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #161616;
+  background: #f0c94f;
+  color: #161616;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.notification-list__status[data-read="true"] {
+  background: #e6efe6;
+}
+
+.notification-list__time,
+.notification-list__reason {
+  color: #4f4a43;
+  font-size: 13px;
+}
+
+.notification-list__title {
+  margin: 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.notification-list__reason {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.notification-panel__action--item {
+  flex: 0 0 auto;
+}
+
 .monitor-panel__form,
 .monitor-panel__summary,
 .monitor-list__item,
@@ -542,7 +682,20 @@
   .monitor-panel__form,
   .monitor-list__item,
   .monitor-list__meta,
-  .monitor-list__toggle {
+  .monitor-list__toggle,
+  .notification-list__item,
+  .notification-list__meta,
+  .notification-panel__header-meta {
     display: grid;
+  }
+
+  .notification-panel__header-meta {
+    justify-content: stretch;
+  }
+
+  .notification-panel__action,
+  .topbar__button {
+    width: 100%;
+    justify-content: space-between;
   }
 }
