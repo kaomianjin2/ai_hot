@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { mockNotificationEvents } from './data/mockData';
 import type { HotItem, MonitorKeyword, ScanSummary } from './types/domain';
 import { HotRadarControls, type HotRadarSort } from './components/HotRadarControls';
 import { Layout } from './components/Layout';
@@ -17,10 +16,6 @@ import {
   updateKeyword,
 } from './api/client';
 import './components/components.css';
-
-const unreadNotificationCount = mockNotificationEvents.filter(
-  (notificationEvent) => !notificationEvent.read
-).length;
 
 const minimumHeatOptions = [0, 20, 40, 60, 80];
 
@@ -106,7 +101,6 @@ export function App() {
     { id: 'hot', label: '热点', count: hotItems.length },
     { id: 'search', label: '搜索' },
     { id: 'keywords', label: '监控词', count: activeKeywordCount },
-    { id: 'notifications', label: '通知', count: unreadNotificationCount },
   ];
 
   const normalizedSearchText = searchText.trim().toLowerCase();
@@ -209,7 +203,7 @@ export function App() {
             </button>
           }
           brand="AI Hot Radar"
-          statusLabel={`${hotItems.length} 条热点 · ${unreadNotificationCount} 条未读`}
+          statusLabel={`${hotItems.length} 条热点`}
         />
       }
       tabs={<Tabs activeId={activeTabId} items={tabItems} onChange={setActiveTabId} />}
@@ -307,23 +301,6 @@ export function App() {
             tabId="tab-keywords"
           />
         </ListContainer>
-      ) : null}
-
-      {activeTabId === 'notifications' ? (
-        <div
-          aria-labelledby="tab-notifications"
-          id="panel-notifications"
-          role="tabpanel"
-          tabIndex={0}
-        >
-          <ListContainer
-            description="通知页面待后续任务接入，这里保留当前未读数量与布局位置。"
-            meta={`${unreadNotificationCount} 条未读`}
-            title="通知"
-          >
-            <p className="empty-state">通知能力将在后续任务中接入。</p>
-          </ListContainer>
-        </div>
       ) : null}
 
       <ListContainer meta="只读摘要" title="最近扫描">

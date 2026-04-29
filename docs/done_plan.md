@@ -1,5 +1,5 @@
 # Done Plan
-Task Count: 16
+Task Count: 17
 
 ## Rules
 
@@ -392,3 +392,21 @@ Playwright: 页面加载触发 API 请求，无 console error，桌面/移动响
 - Verification Result: PASS
 - Side Effects: 前端不再使用 mock 热点/监控词/扫描数据，依赖后端服务运行；mockNotificationEvents 保留
 - Existing Caller Impact: MonitorKeywordsPanel.onAddKeyword 类型扩宽为 `boolean | Promise<boolean>`，向后兼容；其余组件 props 签名不变
+
+### F0301 实现来源适配器接口
+
+- Phase: Sources
+- Scope: `server/src/sources/types.ts`
+- Verify: `cd server && npm run build`
+- Depends On: F0206
+- Owner: backend
+- Channel: Light
+- Write Scope: `server/src/sources/types.ts`
+- State: Done
+- Verification Command: `cd worktrees/F0301/server && npm install && npm run build`
+- Verification Output: `> tsc`（无错误）；`dist/sources/types.js` 已生成
+- Exit Code: 0
+- Result: PASS
+- Side Effects: 新增 `server/src/sources/types.ts`，定义 `SourceAdapter` 接口（name + fetch）和 `SourceConfig` 类型（url + enabled）
+- Existing Caller Impact: 无。新增文件，当前无调用方；F0302/F0303 将 import 此接口
+- Subagent Flow: backend implementation PASS; tester build PASS

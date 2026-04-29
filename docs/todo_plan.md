@@ -1,5 +1,5 @@
 # Todo Plan
-Task Count: 6
+Task Count: 5
 
 ## Rules
 
@@ -14,13 +14,6 @@ Task Count: 6
 - 只有三个队列文件计划对不上时，才读取 `docs/development-plan.md` 矫正核查。
 
 ## Plans
-
-### F0301 实现来源适配器接口
-
-- Phase: Sources
-- Scope: `server/src/sources/types.ts`
-- Verify: `cd server && rtk npm run build`
-- Depends On: F0206
 
 ### F0302 接入 RSS 来源
 
