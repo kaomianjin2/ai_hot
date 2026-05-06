@@ -1,3 +1,5 @@
+import { useEffect, useState, type FormEvent } from 'react';
+
 type HotRadarControlsProps = {
   searchText: string;
   selectedSources: string[];
@@ -12,6 +14,7 @@ type HotRadarControlsProps = {
   onSelectedTagsChange: (value: string[]) => void;
   onMinimumHeatScoreChange: (value: number) => void;
   onSortByChange: (value: HotRadarSort) => void;
+  onReset: () => void;
 };
 
 export type HotRadarSort =
@@ -51,12 +54,24 @@ export function HotRadarControls({
   onSelectedTagsChange,
   onMinimumHeatScoreChange,
   onSortByChange,
+  onReset,
 }: HotRadarControlsProps) {
+  const [draftSearchText, setDraftSearchText] = useState(searchText);
+
+  useEffect(() => {
+    setDraftSearchText(searchText);
+  }, [searchText]);
+
   const activeFilterCount =
     selectedSources.length +
     selectedTags.length +
     (minimumHeatScore > 0 ? 1 : 0) +
     (searchText.trim() ? 1 : 0);
+
+  function handleSubmitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onSearchTextChange(draftSearchText);
+  }
 
   return (
     <>
@@ -75,9 +90,12 @@ export function HotRadarControls({
         </div>
         <div className="filter-group">
           <div className="filter-button active">
-            <span>筛选</span>
+            <span>▽ 筛选</span>
             <span className="filter-dot">{activeFilterCount}</span>
           </div>
+          <button className="filter-button" type="button" onClick={onReset}>
+            ↻ 重置
+          </button>
         </div>
       </section>
 
@@ -147,7 +165,7 @@ export function HotRadarControls({
       </section>
 
       <section className="search-panel">
-        <div className="search-row">
+        <form className="search-row" onSubmit={handleSubmitSearch}>
           <input
             aria-label="热点搜索"
             className="search-input"
@@ -155,13 +173,13 @@ export function HotRadarControls({
             name="hot-search"
             placeholder="按标题、摘要、标签、来源搜索"
             type="search"
-            value={searchText}
-            onChange={(event) => onSearchTextChange(event.target.value)}
+            value={draftSearchText}
+            onChange={(event) => setDraftSearchText(event.target.value)}
           />
-          <div className="search-button search-button--static" aria-hidden="true">
-            实时过滤
-          </div>
-        </div>
+          <button className="search-button" type="submit">
+            搜索
+          </button>
+        </form>
       </section>
     </>
   );

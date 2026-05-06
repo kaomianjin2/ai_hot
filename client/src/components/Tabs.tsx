@@ -1,5 +1,6 @@
 type TabItem = {
   id: string;
+  icon?: string;
   label: string;
   count?: number;
 };
@@ -34,6 +35,11 @@ export function Tabs({ items, activeId, onChange }: TabsProps) {
             type="button"
             onClick={() => onChange(item.id)}
           >
+            {item.icon ? (
+              <span aria-hidden="true" className="tab-icon">
+                {item.icon}
+              </span>
+            ) : null}
             <span>{item.label}</span>
             {typeof item.count === 'number' ? <span className="tab-count">{item.count}</span> : null}
           </button>

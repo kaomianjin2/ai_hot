@@ -49,7 +49,9 @@ export function Topbar({
           onClick={onToggleNotifications}
         >
           <span aria-hidden="true">⌁</span>
-          {unreadCount > 0 ? <span className="bell-badge">{bellBadgeText}</span> : null}
+          <span className="bell-badge" data-visible={unreadCount > 0}>
+            {bellBadgeText}
+          </span>
         </button>
       </div>
     </header>

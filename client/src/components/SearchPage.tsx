@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { HotItem } from '../types/domain';
 
 type SearchPageProps = {
@@ -60,12 +60,24 @@ function renderHotCard(hotItem: HotItem) {
 }
 
 export function SearchPage({ hotItems, panelId, tabId }: SearchPageProps) {
+  const [draftQuery, setDraftQuery] = useState('');
   const [query, setQuery] = useState('');
   const normalizedQuery = query.trim().toLowerCase();
   const results = normalizedQuery
     ? hotItems.filter((hotItem) => matchesQuery(hotItem, normalizedQuery))
     : [];
   const hasQuery = normalizedQuery.length > 0;
+  const activeFilterCount = hasQuery ? 1 : 0;
+
+  function handleSubmitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setQuery(draftQuery);
+  }
+
+  function handleResetSearch() {
+    setDraftQuery('');
+    setQuery('');
+  }
 
   return (
     <div
@@ -74,13 +86,47 @@ export function SearchPage({ hotItems, panelId, tabId }: SearchPageProps) {
       id={panelId}
       role="tabpanel"
       tabIndex={0}
-    >
+      >
       <div className="section-title-row">
         <h2 className="section-title">⌕ 搜索热点</h2>
         <div className="refresh-note">{hotItems.length} 条可搜索热点</div>
       </div>
+
+      <section aria-label="搜索排序与筛选" className="toolbar">
+        <div className="sort-group" aria-label="搜索维度">
+          <span className="chip">最新发现</span>
+          <span className="chip">最新发布</span>
+          <span className="chip">重要程度</span>
+          <span className="chip">相关性</span>
+          <span className="chip active">搜索综合</span>
+        </div>
+        <div className="filter-group">
+          <div className="filter-button active" aria-label="搜索筛选状态">
+            <span>▽ 筛选</span>
+            <span className="filter-dot">{activeFilterCount}</span>
+          </div>
+          <button className="filter-button" type="button" onClick={handleResetSearch}>
+            ↻ 重置
+          </button>
+        </div>
+      </section>
+
+      <section aria-label="搜索筛选面板" className="filter-panel search-filter-panel">
+        <div className="filter-row">
+          <div className="select-shell" aria-label="来源维度">
+            <span className="filter-summary">全部来源</span>
+          </div>
+          <div className="select-shell" aria-label="时间维度">
+            <span className="filter-summary">全部时间</span>
+          </div>
+          <div className="select-shell" aria-label="真实性维度">
+            <span className="filter-summary">全部状态</span>
+          </div>
+        </div>
+      </section>
+
       <div className="search-panel">
-        <div className="search-row">
+        <form className="search-row" onSubmit={handleSubmitSearch}>
           <input
             autoComplete="off"
             aria-label="搜索页搜索输入"
@@ -88,13 +134,13 @@ export function SearchPage({ hotItems, panelId, tabId }: SearchPageProps) {
             id="search-page-input"
             placeholder="输入关键词搜索热点..."
             type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            value={draftQuery}
+            onChange={(event) => setDraftQuery(event.target.value)}
           />
-          <div className="search-button search-button--static" aria-hidden="true">
-            本地搜索
-          </div>
-        </div>
+          <button className="search-button" type="submit">
+            搜索
+          </button>
+        </form>
       </div>
 
       <p className="search-status">

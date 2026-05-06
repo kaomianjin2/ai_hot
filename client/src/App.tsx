@@ -140,6 +140,7 @@ function sortHotItems(hotItems: HotItem[], sortBy: HotRadarSort) {
 
 export function App() {
   type AddKeywordResult = 'added' | 'duplicate' | 'failed';
+  const defaultHotRadarSort: HotRadarSort = 'heat-desc';
 
   const [activeTabId, setActiveTabId] = useState('hot');
   const [hotItems, setHotItems] = useState<HotItem[]>([]);
@@ -157,7 +158,7 @@ export function App() {
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minimumHeatScore, setMinimumHeatScore] = useState<number>(0);
-  const [sortBy, setSortBy] = useState<HotRadarSort>('heat-desc');
+  const [sortBy, setSortBy] = useState<HotRadarSort>(defaultHotRadarSort);
   const isAnyNotificationPending = pendingNotificationIds.length > 0;
 
   async function loadInitialData() {
@@ -216,9 +217,9 @@ export function App() {
   ).sort((leftTag, rightTag) => leftTag.localeCompare(rightTag));
 
   const tabItems = [
-    { id: 'hot', label: '热点雷达' },
-    { id: 'keywords', label: '监控词' },
-    { id: 'search', label: '搜索' },
+    { id: 'hot', icon: '⌁', label: '热点雷达' },
+    { id: 'keywords', icon: '◎', label: '监控词' },
+    { id: 'search', icon: '⌕', label: '搜索' },
   ];
 
   const normalizedSearchText = searchText.trim().toLowerCase();
@@ -330,6 +331,14 @@ export function App() {
 
   function handleToggleNotificationPanel() {
     setIsNotificationPanelOpen((currentOpen) => !currentOpen);
+  }
+
+  function handleResetHotRadarFilters() {
+    setSearchText('');
+    setSelectedSources([]);
+    setSelectedTags([]);
+    setMinimumHeatScore(0);
+    setSortBy(defaultHotRadarSort);
   }
 
   async function handleMarkNotificationRead(notificationId: string) {
@@ -465,6 +474,7 @@ export function App() {
               sourceOptions={sourceOptions}
               tagOptions={tagOptions}
               onMinimumHeatScoreChange={setMinimumHeatScore}
+              onReset={handleResetHotRadarFilters}
               onSearchTextChange={setSearchText}
               onSelectedSourcesChange={setSelectedSources}
               onSelectedTagsChange={setSelectedTags}
